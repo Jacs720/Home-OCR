@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pokémon HOME OCR</string>
+    <string name="hero_subtitle">Tu colección, identificada y ordenada en el dispositivo.</string>
+    <string name="app_icon_description">Icono de Pokémon HOME OCR</string>
+    <string name="preview_title">Vista previa</string>
+    <string name="session_title">Configurar sesión</string>
+    <string name="session_description">Define cuántos Pokémon se leerán y si la ficha debe avanzar automáticamente.</string>
+    <string name="actions_title">Capturar y analizar</string>
+    <string name="collection_title">Colección local</string>
+    <string name="select_images">Elegir capturas</string>
+    <string name="scan_images">Analizar</string>
+    <string name="export_csv">Exportar colección CSV</string>
+    <string name="open_checklist">Abrir checklist Shiny</string>
+    <string name="scan_limit_label">Cantidad de Pokémon</string>
+    <string name="scan_limit">Límite de capturas</string>
+    <string name="loading_model">Preparando el reconocimiento local…</string>
+    <string name="collection_empty">La colección local está vacía.</string>
+    <string name="ocr_ready">OCR listo. Puedes elegir capturas o iniciar la lectura flotante.</string>
+    <string name="preview_description">Vista previa de la captura</string>
+    <string name="default_scan_limit">1</string>
+    <string name="start_floating_capture">Iniciar lectura sobre Pokémon HOME</string>
+    <string name="capture_now">Capturar</string>
+    <string name="capture_progress">Capturar %1$d/%2$d</string>
+    <string name="stop_capture">Cerrar</string>
+    <string name="capture_channel_name">Captura de Pokémon HOME</string>
+    <string name="capture_channel_description">Mantiene la captura flotante mientras Pokémon HOME está visible.</string>
+    <string name="capture_notification_title">Pokémon HOME OCR activo</string>
+    <string name="capture_notification_text">La pantalla solo se procesa localmente; no se guardan imágenes.</string>
+    <string name="capture_permission_cancelled">Se canceló el permiso para leer la pantalla.</string>
+    <string name="capture_started">Lectura flotante iniciada. Abre Pokémon HOME.</string>
+    <string name="capture_already_running">La lectura flotante ya está activa.</string>
+    <string name="auto_swipe">Deslizar automáticamente al terminar cada lectura</string>
+    <string name="prepare_automation">Conectar swipe automático con Shizuku</string>
+    <string name="automation_explanation">Opcional. Shizuku debe estar instalado e iniciado. La app no usa Accesibilidad ni lee datos personales.</string>
+    <string name="automation_ready">Shizuku listo: el swipe automático está habilitado.</string>
+    <string name="automation_unavailable">Inicia Shizuku y vuelve a pulsar este botón. En Android 11 o posterior puede iniciarse con Depuración inalámbrica.</string>
+    <string name="automation_denied">Shizuku no autorizó el swipe. Puedes continuar con captura manual.</string>
+    <string name="checklist_title">Checklist Shiny</string>
+    <string name="checklist_subtitle">Se completa con el CSV del OCR y conserva la base inicial de tu hoja de cálculo.</string>
+    <string name="checklist_back">← Volver</string>
+    <string name="checklist_loading">Cargando catálogo…</string>
+    <string name="checklist_ready">Checklist listo. Puedes importar otro CSV o marcar casillas manualmente.</string>
+    <string name="checklist_local_empty">La colección OCR local todavía está vacía.</string>
+    <string name="checklist_import_csv">Importar CSV</string>
+    <string name="checklist_sync_local">Sincronizar OCR</string>
+    <string name="checklist_search_hint">Buscar por número, Pokémon, forma o marca</string>
+    <string name="checklist_target_filter">Filtrar por marca de origen</string>
+    <string name="checklist_status_filter">Filtrar por estado</string>
+    <string name="checklist_all_targets">Todas las marcas y bonus</string>
+    <string name="checklist_no_results">No hay entradas que coincidan con estos filtros.</string>
+    <string name="checklist_owned">Conseguido</string>
+    <string name="checklist_pending">Pendiente</string>
+    <string name="checklist_summary_format">%1$d / %2$d conseguidos · %3$d pendientes · %4$d%%</string>
+    <string-array name="checklist_status_filters">
+        <item>Todos los estados</item>
+        <item>Solo pendientes</item>
+        <item>Solo conseguidos</item>
+    </string-array>
+    <plurals name="checklist_visible_count">
+        <item quantity="one">%d entrada visible</item>
+        <item quantity="other">%d entradas visibles</item>
+    </plurals>
+</resources>

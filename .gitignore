@@ -1,0 +1,48 @@
+# Python: entornos y cachés regenerables
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyd
+*.whl
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Capturas, colecciones y resultados locales
+input/*
+!input/.gitkeep
+output/*
+!output/.gitkeep
+
+# Plantillas intermedias anteriores a data/templates
+data/templates_canonical/
+data/templates/origin_blank/
+
+# Android: SDK, dependencias descargadas y resultados de build
+.android-sdk/
+android/.gradle/
+android/local.properties
+android/**/build/
+android/**/.cxx/
+android/app/cache/
+android/app/PaddleLite/
+android/app/OpenCV/
+dist/*.apk
+dist/*.aab
+
+# Firmas y configuración local
+*.jks
+*.keystore
+keystore.properties
+.env
+.env.*
+
+# IDE / sistema
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini

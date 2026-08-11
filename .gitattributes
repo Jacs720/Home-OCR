@@ -1,2 +1,11 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Binary assets and build inputs
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.nb binary
+*.jar binary
+*.so binary

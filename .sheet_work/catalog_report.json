@@ -1,0 +1,63 @@
+{
+  "worksheetRows": 1287,
+  "pokemonRows": 1280,
+  "distinctNationalNumbers": 1025,
+  "firstNumber": 1,
+  "lastNumber": 1025,
+  "missingNumbers": [],
+  "catalogEntries": 7714,
+  "ownedInitial": 4419,
+  "unownedInitial": 3295,
+  "countByTarget": {
+    "Consola Virtual": 280,
+    "Sin marca (Gen 3-5)": 714,
+    "Kalos": 812,
+    "Alola": 898,
+    "Pokémon GO": 1039,
+    "Let's Go": 192,
+    "Galar": 796,
+    "Sinnoh (BDSP)": 548,
+    "Hisui (Legends: Arceus)": 297,
+    "Paldea": 842,
+    "Legends: Z-A": 540,
+    "Dream Ball (V)": 540,
+    "Colo/XD": 216
+  },
+  "ownedByTarget": {
+    "Consola Virtual": 280,
+    "Sin marca (Gen 3-5)": 705,
+    "Kalos": 810,
+    "Alola": 888,
+    "Pokémon GO": 97,
+    "Let's Go": 167,
+    "Galar": 709,
+    "Sinnoh (BDSP)": 0,
+    "Hisui (Legends: Arceus)": 0,
+    "Paldea": 651,
+    "Legends: Z-A": 0,
+    "Dream Ball (V)": 61,
+    "Colo/XD": 51
+  },
+  "unmatchedNames": [],
+  "worksheetCorrections": {
+    "7": {
+      "pokemon": "Venusaur"
+    },
+    "613": {
+      "pokemon": "Simipour"
+    },
+    "916": {
+      "number": 742,
+      "pokemon": "Cutiefly"
+    },
+    "1129": {
+      "pokemon": "Arctozolt"
+    },
+    "1165": {
+      "pokemon": "Quaxly"
+    },
+    "1280": {
+      "pokemon": "Archaludon"
+    }
+  }
+}
