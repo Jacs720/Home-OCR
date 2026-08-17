@@ -1,3 +1,3 @@
-# Distribución local
+# Local build output
 
-`android/build-windows.ps1` copia aquí el APK de depuración. Los APK/AAB están excluidos de Git y deben adjuntarse a una Release de GitHub.
+`android/build-windows.ps1` copies the debug APK here. APK and AAB files are excluded from Git and should be attached to a GitHub Release.

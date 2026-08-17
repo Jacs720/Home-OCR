@@ -10,16 +10,12 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -176,77 +172,11 @@ public final class MainActivity extends AppCompatActivity {
             }
         });
         clearCollectionButton.setOnClickListener(view -> confirmClearCollection());
-        languageButton.setImageResource(AppLanguage.current(this).badgeResource);
-        languageButton.setOnClickListener(view -> showLanguageChooser());
+        LanguageMenu.attach(this, languageButton);
 
         renderCollectionState();
         initializeOcr();
         updateAutomationState();
-    }
-
-    private void showLanguageChooser() {
-        AppLanguage[] languages = AppLanguage.values();
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.choose_language)
-                .setAdapter(new LanguageAdapter(languages), (dialog, which) -> {
-                    AppLanguage selected = languages[which];
-                    if (selected != AppLanguage.current(this)) selected.apply(this);
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
-    private final class LanguageAdapter extends BaseAdapter {
-        private final AppLanguage[] languages;
-
-        LanguageAdapter(AppLanguage[] languages) {
-            this.languages = languages;
-        }
-
-        @Override
-        public int getCount() {
-            return languages.length;
-        }
-
-        @Override
-        public AppLanguage getItem(int position) {
-            return languages[position];
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View recycled, ViewGroup parent) {
-            float density = getResources().getDisplayMetrics().density;
-            int horizontal = Math.round(20 * density);
-            int vertical = Math.round(12 * density);
-            LinearLayout row = new LinearLayout(MainActivity.this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(Gravity.CENTER_VERTICAL);
-            row.setPadding(horizontal, vertical, horizontal, vertical);
-
-            ImageView badge = new ImageView(MainActivity.this);
-            badge.setImageResource(getItem(position).badgeResource);
-            badge.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            row.addView(badge, new LinearLayout.LayoutParams(
-                    Math.round(56 * density), Math.round(32 * density)));
-
-            TextView label = new TextView(MainActivity.this);
-            boolean selected = getItem(position) == AppLanguage.current(MainActivity.this);
-            label.setText(selected
-                    ? getString(R.string.language_selected_format, getItem(position).displayName)
-                    : getItem(position).displayName);
-            label.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.text_primary));
-            label.setTextSize(16);
-            LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
-            labelParams.setMarginStart(Math.round(12 * density));
-            row.addView(label, labelParams);
-            return row;
-        }
     }
 
     private void configureSystemBars() {

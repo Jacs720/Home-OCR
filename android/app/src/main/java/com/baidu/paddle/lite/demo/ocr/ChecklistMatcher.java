@@ -2,18 +2,20 @@ package com.baidu.paddle.lite.demo.ocr;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/** Matches OCR collection rows to a single mark/form/variant checklist target. */
 public final class ChecklistMatcher {
     private final Map<String, List<ChecklistEntry>> entriesByTarget = new HashMap<>();
 
     public ChecklistMatcher(List<ChecklistEntry> entries) {
         for (ChecklistEntry entry : entries) {
-            entriesByTarget.computeIfAbsent(key(
-                    entry.nationalNumber, entry.targetType, entry.originMark),
+            entriesByTarget.computeIfAbsent(
+                    key(entry.nationalNumber, entry.mark, entry.shiny),
                     ignored -> new ArrayList<>()).add(entry);
         }
     }
@@ -22,62 +24,23 @@ public final class ChecklistMatcher {
             int nationalNumber,
             String form,
             String originMark,
-            String ball
+            boolean shiny
     ) {
-        List<ChecklistEntry> matches = new ArrayList<>();
-        int ambiguous = 0;
+        ChecklistMark mark = ChecklistMark.fromDetected(originMark);
+        if (mark == null) return MatchResult.EMPTY;
 
-        String canonicalOrigin = canonicalOrigin(originMark);
-        if (canonicalOrigin != null) {
-            TargetMatch target = matchTarget(
-                    nationalNumber,
-                    ChecklistEntry.TYPE_ORIGIN_MARK,
-                    canonicalOrigin,
-                    form);
-            matches.addAll(target.entries);
-            ambiguous += target.ambiguous;
-        }
-
-        if ("Sin marca (Gen 3-5)".equals(canonicalOrigin)
-                && normalize(ball).contains("dream ball")) {
-            TargetMatch target = matchTarget(
-                    nationalNumber,
-                    ChecklistEntry.TYPE_DREAM_BALL,
-                    "Dream Ball (V)",
-                    form);
-            matches.addAll(target.entries);
-            ambiguous += target.ambiguous;
-        }
-        return new MatchResult(matches, ambiguous);
-    }
-
-    public MatchResult matchLiving(int nationalNumber, String form) {
-        TargetMatch target = matchTarget(
-                nationalNumber,
-                ChecklistEntry.TYPE_LIVING_DEX,
-                "Living Dex",
-                form);
-        return new MatchResult(target.entries, target.ambiguous);
-    }
-
-    private TargetMatch matchTarget(
-            int nationalNumber,
-            String targetType,
-            String target,
-            String detectedForm
-    ) {
         List<ChecklistEntry> candidates = entriesByTarget.getOrDefault(
-                key(nationalNumber, targetType, target), new ArrayList<>());
-        if (candidates.isEmpty()) return TargetMatch.EMPTY;
-        if (candidates.size() == 1) return new TargetMatch(candidates, 0);
+                key(nationalNumber, mark, shiny), Collections.emptyList());
+        if (candidates.isEmpty()) return MatchResult.EMPTY;
+        if (candidates.size() == 1) return new MatchResult(candidates, 0);
 
-        String wanted = canonicalForm(detectedForm);
+        String wanted = canonicalForm(form);
         List<ChecklistEntry> exact = new ArrayList<>();
         for (ChecklistEntry candidate : candidates) {
             if (formsEquivalent(wanted, canonicalForm(candidate.form))) exact.add(candidate);
         }
-        if (exact.size() == 1) return new TargetMatch(exact, 0);
-        return new TargetMatch(new ArrayList<>(), 1);
+        if (exact.size() == 1) return new MatchResult(exact, 0);
+        return new MatchResult(Collections.emptyList(), 1);
     }
 
     static boolean formsEquivalent(String left, String right) {
@@ -89,39 +52,40 @@ public final class ChecklistMatcher {
     static String canonicalForm(String value) {
         String form = normalize(value);
         if (form.isEmpty() || form.equals("estandar") || form.equals("standard")
-                || form.equals("base")) return "standard";
+                || form.equals("base") || form.equals("original")) return "standard";
         if (form.startsWith("revisar forma")) return "review";
 
-        form = form.replace("paldea forma combatiente", "combat")
-                .replace("paldea forma ardiente", "blaze")
-                .replace("paldea forma acuatica", "aqua")
-                .replace("tronco planta", "green")
-                .replace("tronco arena", "yellow")
-                .replace("tronco basura", "pink")
+        return form.replace("paldea forma combatiente", "paldean combat breed")
+                .replace("paldea forma ardiente", "paldean blaze breed")
+                .replace("paldea forma acuatica", "paldean aqua breed")
+                .replace("tronco planta", "plant")
+                .replace("tronco arena", "sandy")
+                .replace("tronco basura", "trash")
                 .replace("rotom calor", "heat")
                 .replace("rotom lavado", "wash")
-                .replace("rotom frio", "fridge")
+                .replace("rotom frio", "frost")
                 .replace("rotom ventilador", "fan")
                 .replace("rotom corte", "mow")
                 .replace("forma tierra", "land")
                 .replace("forma cielo", "sky")
                 .replace("contenido", "confined")
                 .replace("desatado", "unbound")
-                .replace("estilo apasionado", "baile")
-                .replace("estilo animado", "pompom")
-                .replace("estilo placido", "pa u")
-                .replace("estilo refinado", "sensu")
+                .replace("estilo apasionado", "baile style")
+                .replace("estilo animado", "pom pom style")
+                .replace("estilo placido", "pa u style")
+                .replace("estilo refinado", "sensu style")
                 .replace("estilo brusco", "single strike")
                 .replace("estilo fluido", "rapid strike")
-                .replace("mar oeste", "west")
-                .replace("mar este", "east")
-                .replace("raya roja", "red")
-                .replace("raya azul", "blue")
-                .replace("raya blanca", "white")
+                .replace("mar oeste", "west sea")
+                .replace("mar este", "east sea")
+                .replace("raya roja", "red stripe")
+                .replace("raya azul", "blue stripe")
+                .replace("raya blanca", "white stripe")
                 .replace("primavera", "spring")
                 .replace("verano", "summer")
-                .replace("otono", "autumn")
+                .replace("otono", "fall")
                 .replace("invierno", "winter")
+                .replace("flor eterna", "eternal flower")
                 .replace("forma ataque", "attack")
                 .replace("forma defensa", "defense")
                 .replace("forma velocidad", "speed")
@@ -129,66 +93,26 @@ public final class ChecklistMatcher {
                 .replace("forma ", "")
                 .replace("rotom ", "")
                 .trim();
-        return form;
-    }
-
-    static String canonicalOrigin(String value) {
-        String mark = normalize(value);
-        if (mark.isEmpty()) return null;
-        if (mark.contains("consola virtual") || mark.contains("gameboy")
-                || mark.contains("game boy")) return "Consola Virtual";
-        if (mark.contains("sin marca") || mark.contains("no mark")) {
-            return "Sin marca (Gen 3-5)";
-        }
-        if (mark.contains("pentagon") || mark.equals("kalos")) return "Kalos";
-        if (mark.contains("clover") || mark.equals("alola")) return "Alola";
-        if (mark.contains("pokemon go") || mark.equals("go") || mark.contains("go mark")) {
-            return "Pokémon GO";
-        }
-        if (mark.contains("let s go") || mark.contains("lets go") || mark.contains("lgpe")) {
-            return "Let's Go";
-        }
-        if (mark.equals("galar") || mark.contains("galar mark")) return "Galar";
-        if (mark.contains("bdsp") || mark.contains("sinnoh")) return "Sinnoh (BDSP)";
-        if (mark.contains("hisui") || mark.contains("legends arceus")
-                || mark.equals("pla") || mark.equals("la")) {
-            return "Hisui (Legends: Arceus)";
-        }
-        if (mark.equals("paldea") || mark.contains("scarlet violet") || mark.equals("sv")) {
-            return "Paldea";
-        }
-        if (mark.contains("legends z a") || mark.equals("lza")) return "Legends: Z-A";
-        return null;
     }
 
     static String normalize(String value) {
         return Normalizer.normalize(value == null ? "" : value, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
-                .replaceAll("[^\\p{L}0-9]+", " ")
+                .replaceAll("[^\\p{L}0-9!?]+", " ")
                 .trim()
                 .toLowerCase(Locale.ROOT);
     }
 
-    private static String key(int number, String type, String target) {
-        return number + "|" + type + "|" + normalize(target);
+    private static String key(int number, ChecklistMark mark, boolean shiny) {
+        return number + "|" + mark.code + "|" + shiny;
     }
 
     public static final class MatchResult {
+        static final MatchResult EMPTY = new MatchResult(Collections.emptyList(), 0);
         public final List<ChecklistEntry> entries;
         public final int ambiguous;
 
         MatchResult(List<ChecklistEntry> entries, int ambiguous) {
-            this.entries = entries;
-            this.ambiguous = ambiguous;
-        }
-    }
-
-    private static final class TargetMatch {
-        static final TargetMatch EMPTY = new TargetMatch(new ArrayList<>(), 0);
-        final List<ChecklistEntry> entries;
-        final int ambiguous;
-
-        TargetMatch(List<ChecklistEntry> entries, int ambiguous) {
             this.entries = entries;
             this.ambiguous = ambiguous;
         }

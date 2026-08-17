@@ -78,21 +78,30 @@
     <string name="checklist_title">Checklist</string>
     <string name="checklist_back">← Back</string>
     <string name="checklist_loading">Loading catalog…</string>
-    <string name="checklist_ready">Checklist ready. You can import another CSV or tick entries manually.</string>
+    <string name="checklist_ready">Checklist ready. Import a CSV or tick entries manually.</string>
     <string name="checklist_local_empty">The local OCR collection is still empty.</string>
+    <string name="checklist_open_error">The checklist could not be opened.</string>
+    <string name="checklist_import_error">The CSV could not be imported.</string>
+    <string name="checklist_sync_error">The local collection could not be synced.</string>
+    <string name="checklist_import_invalid">Unrecognized CSV: the No. column is required.</string>
+    <string name="checklist_import_summary">%1$d records · %2$d new normal · %3$d new shiny · %4$d unmatched · %5$d ambiguous</string>
     <string name="checklist_import_csv">Import CSV</string>
     <string name="checklist_sync_local">Sync OCR</string>
     <string name="checklist_clear_progress">Delete checklist progress</string>
     <string name="checklist_clear_title">Delete saved progress</string>
-    <string name="checklist_clear_message">Delete all saved Living Dex and Ultimate Checklist progress? This cannot be undone.</string>
+    <string name="checklist_clear_message">Delete all saved checklist progress? This cannot be undone.</string>
     <string name="checklist_clear_positive">Delete progress</string>
     <string name="checklist_clear_negative">Cancel</string>
     <string name="checklist_clear_success">All progress was deleted. Tap Sync OCR to reload the local collection.</string>
     <string name="checklist_search_hint">Search by number, Pokémon, or form</string>
-    <string name="checklist_mode_filter">Change checklist type</string>
-    <string name="checklist_target_filter">Filter by origin mark</string>
+    <string name="checklist_mark_filter">Filter by origin mark</string>
+    <string name="checklist_variant_filter">Filter shiny or normal</string>
     <string name="checklist_status_filter">Filter by status</string>
-    <string name="checklist_all_targets">All marks and bonuses</string>
+    <string name="checklist_all_marks">All marks</string>
+    <string name="checklist_shiny">Shiny</string>
+    <string name="checklist_non_shiny">Non-shiny</string>
+    <string name="checklist_target_format">%1$s · %2$s</string>
+    <string name="checklist_target_with_form_format">%1$s · %2$s</string>
     <string name="checklist_no_results">No entries match these filters.</string>
     <string name="checklist_owned">Owned</string>
     <string name="checklist_pending">Missing</string>
@@ -100,6 +109,17 @@
     <plurals name="manual_progress_complete"><item quantity="one">Analysis complete: %1$d of %2$d screenshot</item><item quantity="other">Analysis complete: %1$d of %2$d screenshots</item></plurals>
     <plurals name="checklist_summary_format"><item quantity="one">%1$d / %2$d owned · %3$d missing · %4$d%%</item><item quantity="other">%1$d / %2$d owned · %3$d missing · %4$d%%</item></plurals>
     <string-array name="checklist_status_filters"><item>All statuses</item><item>Missing only</item><item>Owned only</item></string-array>
-    <string-array name="checklist_modes"><item>Living Dex</item><item>Ultimate Checklist</item></string-array>
+    <string-array name="checklist_variant_filters"><item>Shiny and non-shiny</item><item>Shiny only</item><item>Non-shiny only</item></string-array>
     <plurals name="checklist_visible_count"><item quantity="one">%d visible entry</item><item quantity="other">%d visible entries</item></plurals>
+    <string name="mark_no_mark">No mark</string>
+    <string name="mark_gb">Game Boy</string>
+    <string name="mark_go">Pokémon GO</string>
+    <string name="mark_p">Pentagon</string>
+    <string name="mark_usum">Alola</string>
+    <string name="mark_lgpe">Let’s Go</string>
+    <string name="mark_swsh">Galar</string>
+    <string name="mark_la">Hisui</string>
+    <string name="mark_bdsp">Sinnoh</string>
+    <string name="mark_sv">Scarlet / Violet</string>
+    <string name="mark_lza">Lumiose</string>
 </resources>

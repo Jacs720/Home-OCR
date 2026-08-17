@@ -32,6 +32,12 @@ if (Get-PSDrive -Name $DriveLetter -ErrorAction SilentlyContinue) {
 
 try {
     $env:GRADLE_USER_HOME = $gradleUserHome
+    # CMake stores the temporary drive letter in its generated state. Remove only
+    # that disposable state so the helper also works after a previous mapped build.
+    $nativeBuildState = Join-Path $androidRoot 'app\.cxx'
+    if (Test-Path -LiteralPath $nativeBuildState) {
+        Remove-Item -LiteralPath $nativeBuildState -Recurse -Force
+    }
     & subst $drive $repositoryRoot
     $mappedAndroid = "$drive\android"
     $mappedSdk = if ($sdkRoot.StartsWith($repositoryRoot, [StringComparison]::OrdinalIgnoreCase)) {

@@ -9,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -32,13 +33,12 @@ import java.util.concurrent.Executors;
 public final class ChecklistActivity extends AppCompatActivity {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final List<ChecklistEntry> allEntries = new ArrayList<>();
-    private final List<String> targetFilters = new ArrayList<>();
 
     private ChecklistRepository repository;
     private ChecklistAdapter adapter;
     private EditText searchView;
-    private Spinner modeFilterView;
-    private Spinner targetFilterView;
+    private Spinner markFilterView;
+    private Spinner variantFilterView;
     private Spinner statusFilterView;
     private TextView summaryView;
     private TextView resultCountView;
@@ -48,8 +48,6 @@ public final class ChecklistActivity extends AppCompatActivity {
     private Button importButton;
     private Button syncButton;
     private Button clearButton;
-    private String selectedMode = ChecklistEntry.MODE_LIVING_DEX;
-    private boolean configuringFilters;
 
     private final ActivityResultLauncher<String[]> csvPicker = registerForActivityResult(
             new ActivityResultContracts.OpenDocument(),
@@ -63,8 +61,8 @@ public final class ChecklistActivity extends AppCompatActivity {
         setContentView(R.layout.activity_checklist);
 
         searchView = findViewById(R.id.checklist_search);
-        modeFilterView = findViewById(R.id.checklist_mode_filter);
-        targetFilterView = findViewById(R.id.checklist_target_filter);
+        markFilterView = findViewById(R.id.checklist_mark_filter);
+        variantFilterView = findViewById(R.id.checklist_variant_filter);
         statusFilterView = findViewById(R.id.checklist_status_filter);
         summaryView = findViewById(R.id.checklist_summary);
         resultCountView = findViewById(R.id.checklist_result_count);
@@ -77,6 +75,7 @@ public final class ChecklistActivity extends AppCompatActivity {
         ListView listView = findViewById(R.id.checklist_list);
         TextView emptyView = findViewById(R.id.checklist_empty);
         Button backButton = findViewById(R.id.checklist_back);
+        ImageButton languageButton = findViewById(R.id.checklist_language_button);
 
         repository = new ChecklistRepository(this);
         adapter = new ChecklistAdapter(this, (entry, owned) -> {
@@ -89,6 +88,7 @@ public final class ChecklistActivity extends AppCompatActivity {
         listView.setEmptyView(emptyView);
 
         backButton.setOnClickListener(view -> finish());
+        LanguageMenu.attach(this, languageButton);
         importButton.setOnClickListener(view -> csvPicker.launch(new String[]{
                 "text/csv", "text/comma-separated-values", "application/csv", "text/plain"}));
         syncButton.setOnClickListener(view -> syncLocalCollection(true));
@@ -105,31 +105,15 @@ public final class ChecklistActivity extends AppCompatActivity {
         AdapterView.OnItemSelectedListener filterListener = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                applyFilters();
-            }
-
-            @Override public void onNothingSelected(AdapterView<?> parent) { }
-        };
-        targetFilterView.setOnItemSelectedListener(filterListener);
-        statusFilterView.setOnItemSelectedListener(filterListener);
-        modeFilterView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (configuringFilters) return;
-                String nextMode = position == 1
-                        ? ChecklistEntry.MODE_ULTIMATE : ChecklistEntry.MODE_LIVING_DEX;
-                if (!nextMode.equals(selectedMode)) {
-                    selectedMode = nextMode;
-                    repository.setSelectedMode(selectedMode);
-                    targetFilterView.setSelection(0);
-                }
-                updateModeUi();
                 updateSummary();
                 applyFilters();
             }
 
             @Override public void onNothingSelected(AdapterView<?> parent) { }
-        });
+        };
+        markFilterView.setOnItemSelectedListener(filterListener);
+        variantFilterView.setOnItemSelectedListener(filterListener);
+        statusFilterView.setOnItemSelectedListener(filterListener);
 
         loadChecklist();
     }
@@ -143,7 +127,6 @@ public final class ChecklistActivity extends AppCompatActivity {
                         ? repository.importCsv(new CollectionStore(this).readCsvText())
                         : new ChecklistRepository.ImportResult();
                 runOnUiThread(() -> {
-                    selectedMode = repository.selectedMode();
                     allEntries.clear();
                     allEntries.addAll(repository.entries());
                     configureFilters();
@@ -151,64 +134,56 @@ public final class ChecklistActivity extends AppCompatActivity {
                     applyFilters();
                     importStatusView.setText(local.rowsRead == 0
                             ? getString(R.string.checklist_ready)
-                            : local.summary());
+                            : formatImportResult(local));
                     setBusy(false);
                 });
             } catch (IOException exception) {
-                showError("No se pudo abrir el checklist: " + exception.getMessage());
+                showError(getString(R.string.checklist_open_error));
             }
         });
     }
 
     private void configureFilters() {
-        configuringFilters = true;
-        ArrayAdapter<CharSequence> modeAdapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.checklist_modes,
-                android.R.layout.simple_spinner_item);
-        modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        modeFilterView.setAdapter(modeAdapter);
-        modeFilterView.setSelection(ChecklistEntry.MODE_ULTIMATE.equals(selectedMode) ? 1 : 0);
+        List<String> marks = new ArrayList<>();
+        marks.add(getString(R.string.checklist_all_marks));
+        for (ChecklistMark mark : ChecklistMark.values()) marks.add(mark.label(this));
+        setSpinner(markFilterView, marks);
 
-        targetFilters.clear();
-        targetFilters.add(getString(R.string.checklist_all_targets));
-        targetFilters.addAll(repository.targets(ChecklistEntry.MODE_ULTIMATE));
-        ArrayAdapter<String> targetAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, targetFilters);
-        targetAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        targetFilterView.setAdapter(targetAdapter);
+        ArrayAdapter<CharSequence> variantAdapter = ArrayAdapter.createFromResource(
+                this, R.array.checklist_variant_filters, android.R.layout.simple_spinner_item);
+        variantAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        variantFilterView.setAdapter(variantAdapter);
 
         ArrayAdapter<CharSequence> statusAdapter = ArrayAdapter.createFromResource(
-                this,
-                R.array.checklist_status_filters,
-                android.R.layout.simple_spinner_item);
+                this, R.array.checklist_status_filters, android.R.layout.simple_spinner_item);
         statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusFilterView.setAdapter(statusAdapter);
-        configuringFilters = false;
-        updateModeUi();
     }
 
-    private void updateModeUi() {
-        boolean ultimate = ChecklistEntry.MODE_ULTIMATE.equals(selectedMode);
-        targetFilterView.setVisibility(ultimate ? View.VISIBLE : View.GONE);
+    private void setSpinner(Spinner spinner, List<String> values) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, values);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
     }
 
     private void importCsv(Uri uri) {
         setBusy(true);
         worker.execute(() -> {
             try (InputStream input = getContentResolver().openInputStream(uri)) {
-                if (input == null) throw new IOException("no se pudo abrir el archivo");
+                if (input == null) throw new IOException("Unable to open CSV.");
                 ChecklistRepository.ImportResult result = repository.importCsv(
                         ChecklistRepository.readUtf8(input));
                 runOnUiThread(() -> {
-                    importStatusView.setText(result.summary());
+                    String summary = formatImportResult(result);
+                    importStatusView.setText(summary);
                     updateSummary();
                     applyFilters();
                     setBusy(false);
-                    Toast.makeText(this, result.summary(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, summary, Toast.LENGTH_LONG).show();
                 });
             } catch (IOException exception) {
-                showError("No se pudo importar el CSV: " + exception.getMessage());
+                showError(getString(R.string.checklist_import_error));
             }
         });
     }
@@ -221,39 +196,50 @@ public final class ChecklistActivity extends AppCompatActivity {
                         new CollectionStore(this).readCsvText());
                 repository.setAutoSyncLocal(true);
                 runOnUiThread(() -> {
-                    importStatusView.setText(result.rowsRead == 0
+                    String summary = result.rowsRead == 0
                             ? getString(R.string.checklist_local_empty)
-                            : result.summary());
+                            : formatImportResult(result);
+                    importStatusView.setText(summary);
                     updateSummary();
                     applyFilters();
                     setBusy(false);
-                    if (showToast) Toast.makeText(this,
-                            importStatusView.getText(), Toast.LENGTH_LONG).show();
+                    if (showToast) Toast.makeText(this, summary, Toast.LENGTH_LONG).show();
                 });
             } catch (IOException exception) {
-                showError("No se pudo sincronizar la colección local: " + exception.getMessage());
+                showError(getString(R.string.checklist_sync_error));
             }
         });
+    }
+
+    private String formatImportResult(ChecklistRepository.ImportResult result) {
+        if (result.invalidFormat) return getString(R.string.checklist_import_invalid);
+        return getString(
+                R.string.checklist_import_summary,
+                result.rowsRead,
+                result.newNormalTargets,
+                result.newShinyTargets,
+                result.unmatched,
+                result.ambiguous);
     }
 
     private void applyFilters() {
         if (adapter == null || allEntries.isEmpty()) return;
         String query = ChecklistMatcher.normalize(searchView.getText().toString());
-        int targetIndex = targetFilterView.getSelectedItemPosition();
-        String selectedTarget = ChecklistEntry.MODE_ULTIMATE.equals(selectedMode)
-                && targetIndex > 0 && targetIndex < targetFilters.size()
-                ? targetFilters.get(targetIndex) : null;
+        ChecklistMark selectedMark = selectedMark();
+        Boolean selectedShiny = selectedShiny();
         int status = statusFilterView.getSelectedItemPosition();
+        String shinyLabel = getString(R.string.checklist_shiny);
+        String normalLabel = getString(R.string.checklist_non_shiny);
         List<ChecklistEntry> visible = new ArrayList<>();
         for (ChecklistEntry entry : allEntries) {
-            if (!selectedMode.equals(entry.mode())) continue;
-            if (selectedTarget != null && !selectedTarget.equals(entry.originMark)) continue;
+            if (selectedMark != null && entry.mark != selectedMark) continue;
+            if (selectedShiny != null && entry.shiny != selectedShiny) continue;
             if (status == 1 && entry.owned) continue;
             if (status == 2 && !entry.owned) continue;
             if (!query.isEmpty()) {
                 String haystack = ChecklistMatcher.normalize(String.format(Locale.ROOT,
-                        "%04d %s %s %s", entry.nationalNumber, entry.pokemon,
-                        entry.form, entry.originMark));
+                        "%04d %s %s %s %s", entry.nationalNumber, entry.pokemon,
+                        entry.form, entry.mark.label(this), entry.shiny ? shinyLabel : normalLabel));
                 if (!haystack.contains(query)) continue;
             }
             visible.add(entry);
@@ -265,8 +251,10 @@ public final class ChecklistActivity extends AppCompatActivity {
 
     private void updateSummary() {
         if (repository == null) return;
-        int total = repository.countTotal(selectedMode);
-        int owned = repository.countOwned(selectedMode);
+        ChecklistMark mark = selectedMark();
+        Boolean shiny = selectedShiny();
+        int total = repository.countTotal(mark, shiny);
+        int owned = repository.countOwned(mark, shiny);
         int pending = Math.max(0, total - owned);
         int percentage = total == 0 ? 0 : Math.round(owned * 100f / total);
         summaryView.setText(getResources().getQuantityString(
@@ -275,6 +263,21 @@ public final class ChecklistActivity extends AppCompatActivity {
         completionView.setMax(Math.max(1, total));
         completionView.setProgress(owned);
         updateClearButton();
+    }
+
+    private ChecklistMark selectedMark() {
+        if (markFilterView == null) return null;
+        int position = markFilterView.getSelectedItemPosition();
+        ChecklistMark[] marks = ChecklistMark.values();
+        return position > 0 && position <= marks.length ? marks[position - 1] : null;
+    }
+
+    private Boolean selectedShiny() {
+        if (variantFilterView == null) return null;
+        int position = variantFilterView.getSelectedItemPosition();
+        if (position == 1) return true;
+        if (position == 2) return false;
+        return null;
     }
 
     private void confirmClearProgress() {

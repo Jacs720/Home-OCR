@@ -20,11 +20,13 @@ public final class ChecklistAdapter extends BaseAdapter {
     }
 
     private final LayoutInflater inflater;
+    private final Context context;
     private final OnOwnedChangedListener listener;
     private final List<ChecklistEntry> entries = new ArrayList<>();
 
     public ChecklistAdapter(Context context, OnOwnedChangedListener listener) {
         this.inflater = LayoutInflater.from(context);
+        this.context = context;
         this.listener = listener;
     }
 
@@ -63,7 +65,16 @@ public final class ChecklistAdapter extends BaseAdapter {
         ChecklistEntry entry = getItem(position);
         holder.number.setText(String.format(Locale.ROOT, "#%04d", entry.nationalNumber));
         holder.pokemon.setText(entry.pokemon);
-        holder.target.setText(entry.originMark);
+        String target = context.getString(
+                R.string.checklist_target_format,
+                entry.mark.label(context),
+                context.getString(entry.shiny
+                        ? R.string.checklist_shiny : R.string.checklist_non_shiny));
+        if (!entry.form.isEmpty()) {
+            target = context.getString(R.string.checklist_target_with_form_format,
+                    target, entry.form);
+        }
+        holder.target.setText(target);
         holder.owned.setOnCheckedChangeListener(null);
         holder.owned.setChecked(entry.owned);
         holder.owned.setText(entry.owned ? R.string.checklist_owned : R.string.checklist_pending);

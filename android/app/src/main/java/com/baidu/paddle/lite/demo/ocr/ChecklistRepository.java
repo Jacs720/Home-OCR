@@ -12,9 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,10 +20,7 @@ public final class ChecklistRepository {
     private static final String ASSET_NAME = "checklist_catalog.csv";
     private static final String PREFERENCES = "shiny_checklist";
     private static final String OWNED_IDS = "owned_ids";
-    private static final String SEEDED_VERSION = "seeded_version";
-    private static final String SELECTED_MODE = "selected_mode";
     private static final String AUTO_SYNC_LOCAL = "auto_sync_local";
-    private static final int CATALOG_VERSION = 2;
 
     private final Context context;
     private final SharedPreferences preferences;
@@ -46,44 +41,32 @@ public final class ChecklistRepository {
             catalog = readUtf8(input);
         }
         List<List<String>> rows = ChecklistCsv.parse(catalog);
-        if (rows.size() < 2) throw new IOException("El catálogo del checklist está vacío.");
+        if (rows.size() < 2) throw new IOException("Checklist catalog is empty.");
         SpeciesCatalog speciesCatalog = new SpeciesCatalog(context);
 
         for (int index = 1; index < rows.size(); index++) {
             List<String> row = rows.get(index);
-            if (row.size() < 7) continue;
+            if (row.size() < 6) continue;
             int number = parseNumber(row.get(1));
-            if (number <= 0) continue;
+            ChecklistMark mark = ChecklistMark.fromCode(row.get(4));
+            if (number <= 0 || mark == null) continue;
             ChecklistEntry entry = new ChecklistEntry(
                     row.get(0),
                     number,
                     speciesCatalog.nameFor(number),
                     row.get(3),
-                    row.get(4),
-                    row.get(5),
-                    truthy(row.get(6)));
+                    mark,
+                    truthy(row.get(5)));
             entries.add(entry);
             entriesById.put(entry.id, entry);
         }
-        if (entries.isEmpty()) throw new IOException("No se encontraron objetivos en el catálogo.");
+        if (entries.isEmpty()) throw new IOException("Checklist catalog has no valid targets.");
 
         Set<String> saved = preferences.getStringSet(OWNED_IDS, Collections.emptySet());
         ownedIds.addAll(saved == null ? Collections.emptySet() : saved);
         ownedIds.retainAll(entriesById.keySet());
-
-        int seededVersion = preferences.getInt(SEEDED_VERSION, 0);
-        if (seededVersion < CATALOG_VERSION) {
-            for (ChecklistEntry entry : entries) {
-                boolean firstInstall = seededVersion == 0;
-                boolean newLivingDex = seededVersion == 1 && entry.isLivingDex();
-                if (entry.ownedInitial && (firstInstall || newLivingDex)) ownedIds.add(entry.id);
-            }
-            preferences.edit()
-                    .putStringSet(OWNED_IDS, new HashSet<>(ownedIds))
-                    .putInt(SEEDED_VERSION, CATALOG_VERSION)
-                    .apply();
-        }
         for (ChecklistEntry entry : entries) entry.owned = ownedIds.contains(entry.id);
+        persist();
         matcher = new ChecklistMatcher(entries);
     }
 
@@ -91,26 +74,18 @@ public final class ChecklistRepository {
         return new ArrayList<>(entries);
     }
 
-    public synchronized List<String> targets(String mode) {
-        LinkedHashSet<String> values = new LinkedHashSet<>();
-        for (ChecklistEntry entry : entries) {
-            if (mode.equals(entry.mode())) values.add(entry.originMark);
-        }
-        return new ArrayList<>(values);
-    }
-
-    public synchronized int countOwned(String mode) {
+    public synchronized int countOwned(ChecklistMark mark, Boolean shiny) {
         int count = 0;
         for (ChecklistEntry entry : entries) {
-            if (mode.equals(entry.mode()) && entry.owned) count++;
+            if (matches(entry, mark, shiny) && entry.owned) count++;
         }
         return count;
     }
 
-    public synchronized int countTotal(String mode) {
+    public synchronized int countTotal(ChecklistMark mark, Boolean shiny) {
         int count = 0;
         for (ChecklistEntry entry : entries) {
-            if (mode.equals(entry.mode())) count++;
+            if (matches(entry, mark, shiny)) count++;
         }
         return count;
     }
@@ -119,18 +94,6 @@ public final class ChecklistRepository {
         int count = 0;
         for (ChecklistEntry entry : entries) if (entry.owned) count++;
         return count;
-    }
-
-    public synchronized String selectedMode() {
-        String saved = preferences.getString(SELECTED_MODE, ChecklistEntry.MODE_LIVING_DEX);
-        return ChecklistEntry.MODE_ULTIMATE.equals(saved)
-                ? ChecklistEntry.MODE_ULTIMATE : ChecklistEntry.MODE_LIVING_DEX;
-    }
-
-    public synchronized void setSelectedMode(String mode) {
-        String safeMode = ChecklistEntry.MODE_ULTIMATE.equals(mode)
-                ? ChecklistEntry.MODE_ULTIMATE : ChecklistEntry.MODE_LIVING_DEX;
-        preferences.edit().putString(SELECTED_MODE, safeMode).apply();
     }
 
     public synchronized boolean shouldAutoSyncLocal() {
@@ -178,8 +141,6 @@ public final class ChecklistRepository {
         int shinyIndex = findHeader(headers,
                 "shiny", "variocolor", "chromatique", "schillernd", "色違い",
                 "이로치", "异色", "異色");
-        int ballIndex = findHeader(headers,
-                "bola", "ball", "poke ball", "pokeball", "ボール", "볼", "球");
         if (numberIndex < 0) {
             result.invalidFormat = true;
             return result;
@@ -195,51 +156,40 @@ public final class ChecklistRepository {
                 continue;
             }
 
-            boolean rowMatched = false;
-            ChecklistMatcher.MatchResult living = matcher.matchLiving(
-                    number, value(row, formIndex));
-            result.ambiguous += living.ambiguous;
-            rowMatched |= !living.entries.isEmpty();
-            for (ChecklistEntry entry : living.entries) {
+            boolean shiny = shinyIndex >= 0 && truthy(value(row, shinyIndex));
+            if (shiny) result.shinyRows++;
+            else result.normalRows++;
+            ChecklistMatcher.MatchResult match = matcher.match(
+                    number,
+                    value(row, formIndex),
+                    value(row, originIndex),
+                    shiny);
+            result.ambiguous += match.ambiguous;
+            if (match.entries.isEmpty()) {
+                result.unmatched++;
+                continue;
+            }
+
+            result.matchedRows++;
+            for (ChecklistEntry entry : match.entries) {
                 if (ownedIds.add(entry.id)) {
                     entry.owned = true;
                     result.newTargets++;
-                    result.newLivingTargets++;
+                    if (entry.shiny) result.newShinyTargets++;
+                    else result.newNormalTargets++;
                     changed = true;
                 } else {
                     result.alreadyOwned++;
                 }
             }
-
-            boolean shiny = shinyIndex >= 0 && truthy(value(row, shinyIndex));
-            if (shiny) {
-                result.shinyRows++;
-                ChecklistMatcher.MatchResult ultimate = matcher.match(
-                        number,
-                        value(row, formIndex),
-                        value(row, originIndex),
-                        value(row, ballIndex));
-                result.ambiguous += ultimate.ambiguous;
-                rowMatched |= !ultimate.entries.isEmpty();
-                for (ChecklistEntry entry : ultimate.entries) {
-                    if (ownedIds.add(entry.id)) {
-                        entry.owned = true;
-                        result.newTargets++;
-                        result.newUltimateTargets++;
-                        changed = true;
-                    } else {
-                        result.alreadyOwned++;
-                    }
-                }
-            } else {
-                result.skippedNonShiny++;
-            }
-
-            if (rowMatched) result.matchedRows++;
-            else result.unmatched++;
         }
         if (changed) persist();
         return result;
+    }
+
+    private static boolean matches(ChecklistEntry entry, ChecklistMark mark, Boolean shiny) {
+        return (mark == null || entry.mark == mark)
+                && (shiny == null || entry.shiny == shiny);
     }
 
     private void persist() {
@@ -299,23 +249,15 @@ public final class ChecklistRepository {
 
     public static final class ImportResult {
         public int rowsRead;
+        public int normalRows;
         public int shinyRows;
         public int matchedRows;
         public int newTargets;
-        public int newLivingTargets;
-        public int newUltimateTargets;
+        public int newNormalTargets;
+        public int newShinyTargets;
         public int alreadyOwned;
         public int unmatched;
         public int ambiguous;
-        public int skippedNonShiny;
         public boolean invalidFormat;
-
-        public String summary() {
-            if (invalidFormat) return "CSV no reconocido: hace falta la columna No.";
-            return String.format(Locale.ROOT,
-                    "%d registros · %d Living Dex nuevas · %d Ultimate nuevas · "
-                            + "%d sin coincidencia · %d ambiguas",
-                    rowsRead, newLivingTargets, newUltimateTargets, unmatched, ambiguous);
-        }
     }
 }

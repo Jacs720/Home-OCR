@@ -80,21 +80,30 @@
     <string name="checklist_title">Checklist</string>
     <string name="checklist_back">← Volver</string>
     <string name="checklist_loading">Cargando catálogo…</string>
-    <string name="checklist_ready">Checklist listo. Puedes importar otro CSV o marcar casillas manualmente.</string>
+    <string name="checklist_ready">Checklist listo. Puedes importar un CSV o marcar casillas manualmente.</string>
     <string name="checklist_local_empty">La colección OCR local todavía está vacía.</string>
+    <string name="checklist_open_error">No se pudo abrir el checklist.</string>
+    <string name="checklist_import_error">No se pudo importar el CSV.</string>
+    <string name="checklist_sync_error">No se pudo sincronizar la colección local.</string>
+    <string name="checklist_import_invalid">CSV no reconocido: hace falta la columna No.</string>
+    <string name="checklist_import_summary">%1$d registros · %2$d normales nuevos · %3$d shiny nuevos · %4$d sin coincidencia · %5$d ambiguos</string>
     <string name="checklist_import_csv">Importar CSV</string>
     <string name="checklist_sync_local">Sincronizar OCR</string>
     <string name="checklist_clear_progress">Eliminar progreso del checklist</string>
     <string name="checklist_clear_title">Eliminar progreso guardado</string>
-    <string name="checklist_clear_message">¿Confirmas que deseas eliminar todo el progreso guardado de Living Dex y Ultimate Checklist? Esta acción no se puede deshacer.</string>
+    <string name="checklist_clear_message">¿Confirmas que deseas eliminar todo el progreso guardado del checklist? Esta acción no se puede deshacer.</string>
     <string name="checklist_clear_positive">Eliminar progreso</string>
     <string name="checklist_clear_negative">Cancelar</string>
     <string name="checklist_clear_success">Se eliminó todo el progreso. Para volver a cargar la colección local, pulsa Sincronizar OCR.</string>
     <string name="checklist_search_hint">Buscar por número, Pokémon o forma</string>
-    <string name="checklist_mode_filter">Cambiar tipo de checklist</string>
-    <string name="checklist_target_filter">Filtrar por marca de origen</string>
+    <string name="checklist_mark_filter">Filtrar por marca de origen</string>
+    <string name="checklist_variant_filter">Filtrar shiny o normal</string>
     <string name="checklist_status_filter">Filtrar por estado</string>
-    <string name="checklist_all_targets">Todas las marcas y bonus</string>
+    <string name="checklist_all_marks">Todas las marcas</string>
+    <string name="checklist_shiny">Shiny</string>
+    <string name="checklist_non_shiny">No shiny</string>
+    <string name="checklist_target_format">%1$s · %2$s</string>
+    <string name="checklist_target_with_form_format">%1$s · %2$s</string>
     <string name="checklist_no_results">No hay entradas que coincidan con estos filtros.</string>
     <string name="checklist_owned">Conseguido</string>
     <string name="checklist_pending">Pendiente</string>
@@ -115,12 +124,24 @@
         <item>Solo pendientes</item>
         <item>Solo conseguidos</item>
     </string-array>
-    <string-array name="checklist_modes">
-        <item>Living Dex</item>
-        <item>Ultimate Checklist</item>
+    <string-array name="checklist_variant_filters">
+        <item>Shiny y no shiny</item>
+        <item>Solo shiny</item>
+        <item>Solo no shiny</item>
     </string-array>
     <plurals name="checklist_visible_count">
         <item quantity="one">%d entrada visible</item>
         <item quantity="other">%d entradas visibles</item>
     </plurals>
+    <string name="mark_no_mark">Sin marca</string>
+    <string name="mark_gb">Game Boy</string>
+    <string name="mark_go">Pokémon GO</string>
+    <string name="mark_p">Pentágono</string>
+    <string name="mark_usum">Alola</string>
+    <string name="mark_lgpe">Let’s Go</string>
+    <string name="mark_swsh">Galar</string>
+    <string name="mark_la">Hisui</string>
+    <string name="mark_bdsp">Sinnoh</string>
+    <string name="mark_sv">Escarlata / Púrpura</string>
+    <string name="mark_lza">Luminalia</string>
 </resources>

@@ -40,6 +40,16 @@
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/checklist_language_button"
+                android:layout_width="52dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/language_button_description"
+                android:padding="6dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/language_es_es" />
         </LinearLayout>
 
         <TextView
@@ -121,12 +131,12 @@
     </LinearLayout>
 
     <Spinner
-        android:id="@+id/checklist_mode_filter"
+        android:id="@+id/checklist_mark_filter"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginTop="12dp"
         android:background="@drawable/bg_input"
-        android:contentDescription="@string/checklist_mode_filter" />
+        android:contentDescription="@string/checklist_mark_filter" />
 
     <EditText
         android:id="@+id/checklist_search"
@@ -150,13 +160,13 @@
         android:orientation="horizontal">
 
         <Spinner
-            android:id="@+id/checklist_target_filter"
+            android:id="@+id/checklist_variant_filter"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
             android:background="@drawable/bg_input"
-            android:contentDescription="@string/checklist_target_filter" />
+            android:contentDescription="@string/checklist_variant_filter" />
 
         <Spinner
             android:id="@+id/checklist_status_filter"

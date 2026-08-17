@@ -11,11 +11,12 @@ public final class ChecklistMatcherTest {
     @Test
     public void matchesOriginAliasesAndRegionalForms() {
         List<ChecklistEntry> entries = Arrays.asList(
-                entry("base", 19, "Rattata", "Estándar", "Alola", ChecklistEntry.TYPE_ORIGIN_MARK),
-                entry("alola", 19, "Rattata alola", "alola", "Alola", ChecklistEntry.TYPE_ORIGIN_MARK));
+                entry("base", 19, "Rattata", "Original", ChecklistMark.USUM, false),
+                entry("alola", 19, "Rattata", "Alolan", ChecklistMark.USUM, false));
         ChecklistMatcher matcher = new ChecklistMatcher(entries);
 
-        ChecklistMatcher.MatchResult result = matcher.match(19, "Alola", "Clover Mark", "Poké Ball");
+        ChecklistMatcher.MatchResult result = matcher.match(
+                19, "Alola", "Clover Mark", false);
 
         assertEquals(1, result.entries.size());
         assertEquals("alola", result.entries.get(0).id);
@@ -23,72 +24,57 @@ public final class ChecklistMatcherTest {
     }
 
     @Test
-    public void matchesSpanishVisualFormToWorkbookForm() {
+    public void matchesSpanishVisualFormToCatalogForm() {
         List<ChecklistEntry> entries = Arrays.asList(
-                entry("west", 422, "Shellos west", "west", "Paldea", ChecklistEntry.TYPE_ORIGIN_MARK),
-                entry("east", 422, "Shellos east", "east", "Paldea", ChecklistEntry.TYPE_ORIGIN_MARK));
+                entry("west", 422, "Shellos", "West Sea", ChecklistMark.SV, true),
+                entry("east", 422, "Shellos", "East Sea", ChecklistMark.SV, true));
         ChecklistMatcher matcher = new ChecklistMatcher(entries);
 
-        ChecklistMatcher.MatchResult result = matcher.match(422, "Mar Oeste", "Paldea", "Poké Ball");
+        ChecklistMatcher.MatchResult result = matcher.match(
+                422, "Mar Oeste", "Paldea", true);
 
         assertEquals(1, result.entries.size());
         assertEquals("west", result.entries.get(0).id);
     }
 
     @Test
-    public void marksOriginAndDreamBallTargetsFromOneRecord() {
+    public void keepsNormalAndShinyTargetsIndependent() {
         List<ChecklistEntry> entries = Arrays.asList(
-                entry("origin", 1, "Bulbasaur", "Estándar", "Sin marca (Gen 3-5)", ChecklistEntry.TYPE_ORIGIN_MARK),
-                entry("dream", 1, "Bulbasaur", "Estándar", "Dream Ball (V)", ChecklistEntry.TYPE_DREAM_BALL));
+                entry("normal", 1, "Bulbasaur", "", ChecklistMark.NO_MARK, false),
+                entry("shiny", 1, "Bulbasaur", "", ChecklistMark.NO_MARK, true));
         ChecklistMatcher matcher = new ChecklistMatcher(entries);
 
-        ChecklistMatcher.MatchResult result = matcher.match(1, "Estándar", "Sin marca", "Dream Ball");
+        ChecklistMatcher.MatchResult normal = matcher.match(
+                1, "Estándar", "Sin marca (Gen 3-5)", false);
+        ChecklistMatcher.MatchResult shiny = matcher.match(
+                1, "Estándar", "No mark", true);
 
-        assertEquals(2, result.entries.size());
-    }
-
-    @Test
-    public void dreamBallRequiresNoOriginMark() {
-        List<ChecklistEntry> entries = Arrays.asList(
-                entry("dream", 1, "Bulbasaur", "Estándar", "Dream Ball (V)", ChecklistEntry.TYPE_DREAM_BALL));
-        ChecklistMatcher matcher = new ChecklistMatcher(entries);
-
-        ChecklistMatcher.MatchResult result = matcher.match(
-                1, "Estándar", "Pentagon Mark", "Dream Ball");
-
-        assertEquals(0, result.entries.size());
-    }
-
-    @Test
-    public void matchesLivingDexRegardlessOfShinyMetadata() {
-        List<ChecklistEntry> entries = Arrays.asList(
-                entry("standard", 19, "Rattata", "Estándar", "Living Dex", ChecklistEntry.TYPE_LIVING_DEX),
-                entry("alola", 19, "Rattata alola", "alola", "Living Dex", ChecklistEntry.TYPE_LIVING_DEX));
-        ChecklistMatcher matcher = new ChecklistMatcher(entries);
-
-        ChecklistMatcher.MatchResult result = matcher.matchLiving(19, "Alola");
-
-        assertEquals(1, result.entries.size());
-        assertEquals("alola", result.entries.get(0).id);
+        assertEquals("normal", normal.entries.get(0).id);
+        assertEquals("shiny", shiny.entries.get(0).id);
     }
 
     @Test
     public void reportsAmbiguousReviewFormsInsteadOfGuessing() {
         List<ChecklistEntry> entries = Arrays.asList(
-                entry("red", 550, "Basculin red", "red", "Galar", ChecklistEntry.TYPE_ORIGIN_MARK),
-                entry("blue", 550, "Basculin blue", "blue", "Galar", ChecklistEntry.TYPE_ORIGIN_MARK));
+                entry("red", 550, "Basculin", "Red Stripe", ChecklistMark.SWSH, false),
+                entry("blue", 550, "Basculin", "Blue Stripe", ChecklistMark.SWSH, false));
         ChecklistMatcher matcher = new ChecklistMatcher(entries);
 
         ChecklistMatcher.MatchResult result = matcher.match(
-                550, "Revisar forma visual", "Galar", "Poké Ball");
+                550, "Revisar forma visual", "Galar", false);
 
         assertEquals(0, result.entries.size());
         assertEquals(1, result.ambiguous);
     }
 
     private static ChecklistEntry entry(
-            String id, int number, String pokemon, String form, String mark, String type
+            String id,
+            int number,
+            String pokemon,
+            String form,
+            ChecklistMark mark,
+            boolean shiny
     ) {
-        return new ChecklistEntry(id, number, pokemon, form, mark, type, false);
+        return new ChecklistEntry(id, number, pokemon, form, mark, shiny);
     }
 }

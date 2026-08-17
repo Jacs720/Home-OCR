@@ -13,3 +13,11 @@ The offline National Pokédex name catalog is derived from the PokéAPI CSV data
 - Copyright PokéAPI contributors.
 - PokéAPI source code is licensed under the BSD 3-Clause License.
 - Source: https://github.com/PokeAPI/pokeapi/blob/master/data/v2/csv/pokemon_species_names.csv
+
+Optional swipe automation uses the Shizuku API and provider libraries:
+
+- Copyright RikkaApps and Shizuku contributors.
+- Licensed under the Apache License 2.0.
+- Source: https://github.com/RikkaApps/Shizuku
+
+The origin-mark checklist catalog is generated from the normalized Home Checklist data set. That data set consolidates origin-mark and shiny-availability research for use by this project.
