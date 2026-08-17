@@ -12,14 +12,11 @@ The app can process saved screenshots or run as a floating reader over Pokémon 
 - Includes a local checklist for normal and shiny Pokémon organized by origin mark.
 - Syncs scanned Pokémon to the checklist and also accepts compatible CSV files.
 - Uses localized Pokémon names and a translated interface in English, Spanish (Spain and Latin America), French, Italian, German, Japanese, Korean, Simplified Chinese, and Traditional Chinese.
-- Can inspect Pokémon without an origin mark for Colosseum/XD evidence such as the National Ribbon or a distant-land location.
-- Follows the Android light or dark theme.
 
 ## Requirements
 
 - Android 7.0 or later.
 - An ARM64 Android device.
-- Pokémon HOME for direct screen reading.
 
 Automatic swiping additionally requires [Shizuku](https://shizuku.rikka.app/). Android 11 or later is recommended because Shizuku can be started through Wireless debugging without a computer. Shizuku must be running and this app must be authorized before automatic swiping or Colosseum/XD inspection can work.
 
