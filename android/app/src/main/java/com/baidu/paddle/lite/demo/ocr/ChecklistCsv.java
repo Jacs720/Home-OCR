@@ -53,6 +53,16 @@ public final class ChecklistCsv {
         return rows;
     }
 
+    public static String serializeRow(List<String> row) {
+        StringBuilder result = new StringBuilder();
+        for (int index = 0; index < row.size(); index++) {
+            if (index > 0) result.append(',');
+            String value = row.get(index) == null ? "" : row.get(index);
+            result.append('"').append(value.replace("\"", "\"\"")).append('"');
+        }
+        return result.toString();
+    }
+
     private static boolean isEmptyRow(List<String> row) {
         for (String cell : row) {
             if (!cell.isEmpty()) return false;

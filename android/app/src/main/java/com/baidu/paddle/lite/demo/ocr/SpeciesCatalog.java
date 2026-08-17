@@ -13,10 +13,13 @@ import java.util.Map;
 
 public final class SpeciesCatalog {
     private static final String ASSET = "pokemon_species_names.csv";
-    private static final String SPANISH_LANGUAGE_ID = "7";
     private final Map<Integer, String> names = new HashMap<>();
 
     public SpeciesCatalog(Context context) {
+        this(context, AppLanguage.current(context));
+    }
+
+    SpeciesCatalog(Context context, AppLanguage language) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 context.getAssets().open(ASSET), StandardCharsets.UTF_8))) {
             String line;
@@ -27,7 +30,8 @@ public final class SpeciesCatalog {
                     continue;
                 }
                 List<String> columns = parseCsvLine(line);
-                if (columns.size() < 3 || !SPANISH_LANGUAGE_ID.equals(columns.get(1))) continue;
+                if (columns.size() < 3
+                        || !language.catalogLanguageId.equals(columns.get(1))) continue;
                 try {
                     names.put(Integer.parseInt(columns.get(0)), columns.get(2));
                 } catch (NumberFormatException ignored) {

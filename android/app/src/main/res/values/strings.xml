@@ -1,24 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Pokémon HOME OCR</string>
-    <string name="hero_subtitle">Tu colección, identificada y ordenada en el dispositivo.</string>
-    <string name="app_icon_description">Icono de Pokémon HOME OCR</string>
-    <string name="preview_title">Vista previa</string>
-    <string name="session_title">Configurar sesión</string>
+    <string name="choose_language">Idioma de la aplicación</string>
+    <string name="language_button_description">Cambiar idioma</string>
+    <string name="csv_export_success">CSV exportado correctamente.</string>
+    <string name="csv_export_error">No se pudo exportar: %1$s</string>
+    <string name="ocr_init_error">No se pudo iniciar PaddleOCR: %1$s</string>
+    <string name="invalid_image">imagen no válida</string>
+    <string name="capture_open_error">no se pudo abrir la captura</string>
+    <string name="preview_error">No se pudo mostrar la captura.</string>
+    <string name="capture_duplicate">↷ Captura %1$d: ya estaba registrada.</string>
+    <string name="capture_analysis_error">⚠ Captura %1$d: %2$s</string>
+    <string name="manual_status_progress">Procesadas %1$d/%2$d · correctas %3$d</string>
+    <string name="manual_status_done">Análisis terminado. Colección: %1$d registros.</string>
+    <string name="selected_capture_count">%1$d captura(s) seleccionada(s).</string>
+    <string name="collection_local_count">Colección local: %1$d registro(s)</string>
+    <string name="manual_section_title">Análisis manual por capturas</string>
+    <string name="automatic_section_title">Lectura automática sobre Pokémon HOME</string>
     <string name="session_description">Define cuántos Pokémon se leerán y si la ficha debe avanzar automáticamente.</string>
-    <string name="actions_title">Capturar y analizar</string>
     <string name="collection_title">Colección local</string>
     <string name="select_images">Elegir capturas</string>
     <string name="scan_images">Analizar</string>
     <string name="export_csv">Exportar colección CSV</string>
-    <string name="open_checklist">Abrir checklist Shiny</string>
+    <string name="clear_collection">Borrar registros de la colección</string>
+    <string name="clear_collection_title">Borrar colección local</string>
+    <string name="clear_collection_message">¿Seguro que deseas borrar todos los registros de la colección local? Esta acción no se puede deshacer.</string>
+    <string name="clear_collection_positive">Sí, borrar</string>
+    <string name="clear_collection_negative">No, conservar</string>
+    <string name="clear_collection_success">Se borraron todos los registros de la colección local.</string>
+    <string name="clear_collection_error">No se pudo borrar la colección local.</string>
+    <string name="open_checklist">Abrir checklist</string>
     <string name="scan_limit_label">Cantidad de Pokémon</string>
     <string name="scan_limit">Límite de capturas</string>
     <string name="loading_model">Preparando el reconocimiento local…</string>
     <string name="collection_empty">La colección local está vacía.</string>
     <string name="ocr_ready">OCR listo. Puedes elegir capturas o iniciar la lectura flotante.</string>
     <string name="preview_description">Vista previa de la captura</string>
-    <string name="default_scan_limit">1</string>
+    <string name="default_scan_limit" translatable="false">1</string>
+    <string name="language_selected_format" translatable="false">%1$s  ✓</string>
     <string name="start_floating_capture">Iniciar lectura sobre Pokémon HOME</string>
     <string name="capture_now">Capturar</string>
     <string name="capture_progress">Capturar %1$d/%2$d</string>
@@ -31,31 +50,74 @@
     <string name="capture_started">Lectura flotante iniciada. Abre Pokémon HOME.</string>
     <string name="capture_already_running">La lectura flotante ya está activa.</string>
     <string name="auto_swipe">Deslizar automáticamente al terminar cada lectura</string>
+    <string name="inspect_orre">Comprobar origen de Pokémon Colosseum/XD</string>
+    <string name="inspect_orre_explanation">Para ejemplares sin marca de origen, desplaza la ficha y busca un lugar lejano o la Cinta Nacional. Requiere Shizuku.</string>
     <string name="prepare_automation">Conectar swipe automático con Shizuku</string>
     <string name="automation_explanation">Opcional. Shizuku debe estar instalado e iniciado. La app no usa Accesibilidad ni lee datos personales.</string>
     <string name="automation_ready">Shizuku listo: el swipe automático está habilitado.</string>
     <string name="automation_unavailable">Inicia Shizuku y vuelve a pulsar este botón. En Android 11 o posterior puede iniciarse con Depuración inalámbrica.</string>
     <string name="automation_denied">Shizuku no autorizó el swipe. Puedes continuar con captura manual.</string>
-    <string name="checklist_title">Checklist Shiny</string>
-    <string name="checklist_subtitle">Se completa con el CSV del OCR y conserva la base inicial de tu hoja de cálculo.</string>
+    <string name="overlay_automatic_orre_ready">Automático + origen Orre · %1$d/%2$d</string>
+    <string name="overlay_automatic_ready">Automático listo · %1$d/%2$d</string>
+    <string name="overlay_shizuku_unavailable">Shizuku no disponible · captura manual</string>
+    <string name="overlay_ready">Listo · %1$d/%2$d</string>
+    <string name="overlay_ocr_error">Error OCR: %1$s</string>
+    <string name="overlay_permission_cancelled">Permiso de pantalla cancelado</string>
+    <string name="overlay_capturing">Capturando · %1$d/%2$d</string>
+    <string name="overlay_reading_orre">Leyendo origen y cintas…</string>
+    <string name="overlay_detail_failed">No se pudo leer el detalle; guardando la ficha principal</string>
+    <string name="overlay_no_frame">No llegó una imagen de pantalla</string>
+    <string name="overlay_analyzing">Analizando…</string>
+    <string name="overlay_scrolling_orre">Desplazando para comprobar origen Orre…</string>
+    <string name="overlay_no_pending_record">No hay una ficha pendiente.</string>
+    <string name="overlay_duplicate">Captura repetida</string>
+    <string name="overlay_shizuku_failed">%1$d/%2$d · falló Shizuku; continúa con CAPTURAR</string>
+    <string name="overlay_result">%1$d/%2$d · %3$s</string>
+    <string name="overlay_error">Error: %1$s</string>
+    <string name="csv_header">No.,Especie,Forma,Marca de origen,Shiny,OT,IDNo.,Bola,Idioma,Confianza,Archivo,Origen especial,Cinta Nacional,Lugar lejano</string>
+    <string name="csv_yes">Sí</string>
+    <string name="csv_no">No</string>
+    <string name="checklist_title">Checklist</string>
     <string name="checklist_back">← Volver</string>
     <string name="checklist_loading">Cargando catálogo…</string>
     <string name="checklist_ready">Checklist listo. Puedes importar otro CSV o marcar casillas manualmente.</string>
     <string name="checklist_local_empty">La colección OCR local todavía está vacía.</string>
     <string name="checklist_import_csv">Importar CSV</string>
     <string name="checklist_sync_local">Sincronizar OCR</string>
-    <string name="checklist_search_hint">Buscar por número, Pokémon, forma o marca</string>
+    <string name="checklist_clear_progress">Eliminar progreso del checklist</string>
+    <string name="checklist_clear_title">Eliminar progreso guardado</string>
+    <string name="checklist_clear_message">¿Confirmas que deseas eliminar todo el progreso guardado de Living Dex y Ultimate Checklist? Esta acción no se puede deshacer.</string>
+    <string name="checklist_clear_positive">Eliminar progreso</string>
+    <string name="checklist_clear_negative">Cancelar</string>
+    <string name="checklist_clear_success">Se eliminó todo el progreso. Para volver a cargar la colección local, pulsa Sincronizar OCR.</string>
+    <string name="checklist_search_hint">Buscar por número, Pokémon o forma</string>
+    <string name="checklist_mode_filter">Cambiar tipo de checklist</string>
     <string name="checklist_target_filter">Filtrar por marca de origen</string>
     <string name="checklist_status_filter">Filtrar por estado</string>
     <string name="checklist_all_targets">Todas las marcas y bonus</string>
     <string name="checklist_no_results">No hay entradas que coincidan con estos filtros.</string>
     <string name="checklist_owned">Conseguido</string>
     <string name="checklist_pending">Pendiente</string>
-    <string name="checklist_summary_format">%1$d / %2$d conseguidos · %3$d pendientes · %4$d%%</string>
+    <plurals name="manual_progress_format">
+        <item quantity="one">%1$d de %2$d captura procesada</item>
+        <item quantity="other">%1$d de %2$d capturas procesadas</item>
+    </plurals>
+    <plurals name="manual_progress_complete">
+        <item quantity="one">Análisis completado: %1$d de %2$d captura</item>
+        <item quantity="other">Análisis completado: %1$d de %2$d capturas</item>
+    </plurals>
+    <plurals name="checklist_summary_format">
+        <item quantity="one">%1$d / %2$d conseguido · %3$d pendientes · %4$d%%</item>
+        <item quantity="other">%1$d / %2$d conseguidos · %3$d pendientes · %4$d%%</item>
+    </plurals>
     <string-array name="checklist_status_filters">
         <item>Todos los estados</item>
         <item>Solo pendientes</item>
         <item>Solo conseguidos</item>
+    </string-array>
+    <string-array name="checklist_modes">
+        <item>Living Dex</item>
+        <item>Ultimate Checklist</item>
     </string-array>
     <plurals name="checklist_visible_count">
         <item quantity="one">%d entrada visible</item>

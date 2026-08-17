@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_navy">#070D17</color>
+    <color name="brand_navy_light">#153247</color>
+    <color name="brand_teal">#287F77</color>
+    <color name="brand_yellow">#FFD45A</color>
+    <color name="brand_action_text">#6FD0C6</color>
+    <color name="primary_pressed">#1E6E68</color>
+    <color name="secondary_pressed">#213543</color>
+    <color name="screen_background">#080E18</color>
+    <color name="surface">#121B29</color>
+    <color name="surface_muted">#192637</color>
+    <color name="status_surface">#152333</color>
+    <color name="preview_end">#111B29</color>
+    <color name="text_primary">#F3F5F7</color>
+    <color name="text_secondary">#B2BECC</color>
+    <color name="text_hint">#8291A4</color>
+    <color name="outline">#2B3B4F</color>
+    <color name="disabled_surface">#263445</color>
+    <color name="disabled_text">#7B8796</color>
+    <color name="progress_track">#263648</color>
+    <color name="checklist_owned">#61C9BD</color>
+    <color name="checklist_pending">#FFB86B</color>
+    <color name="danger">#FF8A80</color>
+    <color name="danger_pressed_surface">#452025</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+</resources>

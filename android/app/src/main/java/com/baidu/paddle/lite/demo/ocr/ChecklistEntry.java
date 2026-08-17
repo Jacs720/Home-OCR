@@ -1,9 +1,13 @@
 package com.baidu.paddle.lite.demo.ocr;
 
 public final class ChecklistEntry {
+    public static final String TYPE_LIVING_DEX = "LIVING_DEX";
     public static final String TYPE_ORIGIN_MARK = "ORIGIN_MARK";
     public static final String TYPE_DREAM_BALL = "DREAM_BALL";
     public static final String TYPE_COLO_XD = "COLO_XD";
+
+    public static final String MODE_LIVING_DEX = "LIVING_DEX";
+    public static final String MODE_ULTIMATE = "ULTIMATE";
 
     public final String id;
     public final int nationalNumber;
@@ -30,5 +34,13 @@ public final class ChecklistEntry {
         this.originMark = originMark;
         this.targetType = targetType;
         this.ownedInitial = ownedInitial;
+    }
+
+    public boolean isLivingDex() {
+        return TYPE_LIVING_DEX.equals(targetType);
+    }
+
+    public String mode() {
+        return isLivingDex() ? MODE_LIVING_DEX : MODE_ULTIMATE;
     }
 }

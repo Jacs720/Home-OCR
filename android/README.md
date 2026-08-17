@@ -1,31 +1,36 @@
-# Build Android
+# Android build
 
-La aplicación usa Java, AndroidX y una capa C++ basada en el demo oficial de PaddleOCR/Paddle Lite. En el primer build, Gradle descarga Paddle Lite 2.10, OpenCV 4.2 y los modelos móviles PP-OCRv2.
+The app uses Java, AndroidX, and a C++ layer based on the official PaddleOCR/Paddle Lite demo. On the first build, Gradle downloads Paddle Lite 2.10, OpenCV 4.2, and the mobile PP-OCRv2 models.
 
 ```powershell
 .\gradlew.bat testDebugUnitTest lintDebug assembleDebug
 ```
 
-En Windows, ejecuta `build-windows.ps1` si la ruta completa contiene caracteres no ASCII. Paddle Lite 2.10 requiere NDK 21.4; versiones modernas del NDK no son compatibles con su biblioteca precompilada.
+On Windows, run `build-windows.ps1` when the full path contains non-ASCII characters. Paddle Lite 2.10 requires NDK 21.4; newer NDK releases are incompatible with its precompiled library.
 
-El código propio está separado en:
+Main components:
 
-- `PaddleLiteOcrEngine`: adaptador OCR;
-- `PokemonParser`: extracción de campos;
-- `TemplateIconDetector`: Poké Balls y marcas;
-- `FormDetector` y detectores especializados: formas regionales y alternativas;
-- `CollectionStore`: persistencia y exportación CSV;
-- `PokemonAnalyzer`: orquestación de OCR y clasificadores visuales;
-- `ScreenCaptureService`: captura directa y control flotante;
-- `ShizukuSwipeController` y `SwipeUserService`: swipe opcional con identidad ADB;
-- `MainActivity`: configuración, selección de archivos y exportación.
+- `PaddleLiteOcrEngine`: OCR adapter.
+- `PokemonParser`: field extraction.
+- `TemplateIconDetector`: Poké Ball, origin-mark, and shiny detection.
+- `FormDetector` and specialized detectors: regional and alternate forms.
+- `SpeciesCatalog`: official localized species names.
+- `AppLanguage`: persistent per-app language selection.
+- `OrreOriginDetector`: localized National Ribbon and distant-land evidence.
+- `CollectionStore`: persistence, schema migration, localized export, and confirmed deletion.
+- `ChecklistActivity`: Living Dex and Ultimate Checklist, CSV synchronization, and saved-progress deletion.
+- `PokemonAnalyzer`: OCR and visual-classifier orchestration.
+- `ScreenCaptureService`: direct screen capture, floating controls, and the optional Orre detail pass.
+- `ShizukuSwipeController` and `SwipeUserService`: horizontal and vertical gestures with the ADB shell identity.
+- `MainActivity`: manual analysis, reading configuration, language selection, progress, and collection management.
 
-## Uso sobre Pokémon HOME
+## Using it over Pokémon HOME
 
-1. Indica el límite de Pokémon.
-2. Para automatizar, inicia Shizuku y autoriza la conexión desde la app.
-3. Pulsa **Iniciar lectura sobre Pokémon HOME** y concede superposición y captura de pantalla.
-4. La lectura comienza y, si Shizuku está disponible, avanza hasta alcanzar el límite.
-5. Sin Shizuku, usa **Capturar** manualmente; la sesión conserva sus resultados.
+1. Set the Pokémon limit.
+2. Start Shizuku and authorize the app when automatic swiping or Orre inspection is needed.
+3. Optionally enable the Pokémon Colosseum/XD origin check.
+4. Tap **Start reading over Pokémon HOME** and grant overlay and screen-capture permission.
+5. The app reads each summary and advances until it reaches the limit.
+6. Without Shizuku, use the floating **Capture** button manually.
 
-Las imágenes se procesan en memoria y no se guardan. El APK no declara un servicio de Accesibilidad.
+Frames are processed in memory and are not saved. The APK does not declare an Accessibility service.

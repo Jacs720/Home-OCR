@@ -38,7 +38,8 @@ public final class ChecklistMatcher {
             ambiguous += target.ambiguous;
         }
 
-        if (normalize(ball).contains("dream ball")) {
+        if ("Sin marca (Gen 3-5)".equals(canonicalOrigin)
+                && normalize(ball).contains("dream ball")) {
             TargetMatch target = matchTarget(
                     nationalNumber,
                     ChecklistEntry.TYPE_DREAM_BALL,
@@ -48,6 +49,15 @@ public final class ChecklistMatcher {
             ambiguous += target.ambiguous;
         }
         return new MatchResult(matches, ambiguous);
+    }
+
+    public MatchResult matchLiving(int nationalNumber, String form) {
+        TargetMatch target = matchTarget(
+                nationalNumber,
+                ChecklistEntry.TYPE_LIVING_DEX,
+                "Living Dex",
+                form);
+        return new MatchResult(target.entries, target.ambiguous);
     }
 
     private TargetMatch matchTarget(

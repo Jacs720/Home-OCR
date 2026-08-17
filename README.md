@@ -1,96 +1,119 @@
 # Pokémon HOME OCR
 
-Aplicación Android que registra una colección de Pokémon HOME desde la ficha individual. El análisis combina PaddleOCR local con detectores visuales para Poké Balls, marcas de origen, shiny y formas alternativas. Las capturas se procesan en memoria y la colección se exporta como CSV UTF-8.
+An Android application that catalogs a Pokémon HOME collection from each Pokémon summary page. It combines local PaddleOCR recognition with visual detectors for Poké Balls, origin marks, shininess, and alternate forms. Screen frames are processed in memory and the collection can be exported as a UTF-8 CSV file.
 
-## Funciones principales
+## Features
 
-- Lectura directa de la pantalla mediante `MediaProjection`, sin guardar screenshots.
-- Control flotante sobre Pokémon HOME para capturar cada ficha.
-- Swipe automático opcional mediante Shizuku, sin servicio de Accesibilidad.
-- Límite configurable de Pokémon por sesión.
-- Pokédex local de 1025 especies e identificación prioritaria por número nacional.
-- Idiomas de HOME: JPN, ENG, SPA/ES-ES/ES-LA, FRE/FRA, GER/DEU, ITA, KOR, CHS y CHT.
-- Detección de Poké Ball, marca de origen, shiny, OT e IDNo.
-- Formas regionales, Unown y varias formas distinguibles por tipos, estadísticas o apariencia.
-- Persistencia local y exportación de la colección a CSV.
-- Checklist Shiny con 7.714 combinaciones posibles de especie/forma, marca de origen y bonus.
-- Sincronización automática del checklist con la colección OCR local e importación de CSV externos.
+- Direct screen reading through Android `MediaProjection`; screenshots are not saved.
+- Floating controls displayed over Pokémon HOME.
+- Optional automatic swiping through Shizuku, without an Accessibility service.
+- Configurable number of Pokémon per scanning session.
+- Local catalog of 1,025 species, identified primarily by National Pokédex number.
+- Official species names in Spanish, English, French, Italian, German, Japanese, Korean, Simplified Chinese, and Traditional Chinese.
+- In-app language selector using the official Pokémon HOME language badges. Spanish is the first-run default.
+- Localized user interface, checklist, species names, and exported CSV headers and values.
+- Detection of Pokémon HOME language, Poké Ball, origin mark, shiny status, OT, and ID number.
+- Regional forms, Unown, and multiple forms distinguished through type, stats, or appearance.
+- Automatic light and dark themes based on the Android system setting.
+- Manual batch analysis with preview and independent progress feedback.
+- Local persistence, CSV export, and collection deletion with confirmation.
+- Living Dex and Ultimate Checklist modes, including local OCR synchronization and external CSV import.
+- Optional Pokémon Colosseum/XD provenance inspection for Pokémon without an origin mark.
 
-La aplicación Android actual es la versión **0.6.0**. El APK de prueba generado localmente queda en `dist/PokemonHomeOCR-debug.apk`; la carpeta `dist` está excluida de Git para que los binarios se publiquen como Releases de GitHub.
+The Android application is currently version **0.8.0**. A locally generated test APK is copied to `dist/PokemonHomeOCR-debug.apk`; `dist` is excluded from Git so binaries can be published through GitHub Releases.
 
-## Compilar Android
+## Pokémon Colosseum/XD provenance
 
-Requisitos:
+When **Check Pokémon Colosseum/XD origin** is enabled, the scanner uses Shizuku to scroll down on Pokémon that have no origin mark. It then searches the lower summary information for either:
 
-- JDK 17;
-- Android SDK 35 y Build Tools 35;
-- Android NDK `21.4.7075529`;
-- CMake `3.10.2`.
+- the localized National Ribbon name; or
+- the localized statement that the Pokémon was first met in a distant land.
 
-En una ruta sin caracteres especiales:
+The exported CSV preserves the special origin, National Ribbon evidence, and distant-land evidence in separate columns. A National Ribbon is strong evidence of a purified Shadow Pokémon. A distant-land value is useful supporting evidence but is not unique to Orre, so the app requires the absence of an origin mark as well. A confirmed shiny Pokémon is labeled **Pokémon Colosseum** because Shadow Pokémon in Pokémon XD cannot be shiny; otherwise the conservative label is **Pokémon Colosseum/XD**.
+
+References:
+
+- [List of Shadow Pokémon](https://bulbapedia.bulbagarden.net/wiki/List_of_Shadow_Pok%C3%A9mon)
+- [Shadow Pokémon and shiny behavior](https://bulbapedia.bulbagarden.net/wiki/Shadow_Pok%C3%A9mon)
+- [Distant land](https://bulbapedia.bulbagarden.net/wiki/Distant_land)
+- [Ribbon names in all supported languages](https://bulbapedia.bulbagarden.net/wiki/List_of_Ribbons_in_the_games/In_other_languages)
+
+## Building for Android
+
+Requirements:
+
+- JDK 17
+- Android SDK 35 and Build Tools 35
+- Android NDK `21.4.7075529`
+- CMake `3.10.2`
+
+From an ASCII-only path:
 
 ```powershell
 cd android
 .\gradlew.bat testDebugUnitTest lintDebug assembleDebug
 ```
 
-Si la ruta de Windows contiene caracteres como `Pokémon`, usa el script incluido. Crea temporalmente una unidad con ruta ASCII, ejecuta pruebas, lint y build, y copia el APK a `dist/`:
+If the Windows path contains non-ASCII characters such as `Pokémon`, use the included helper. It temporarily maps the project to an ASCII drive, runs tests, lint, and the build, and copies the APK to `dist/`:
 
 ```powershell
 .\android\build-windows.ps1
 ```
 
-Paddle Lite, OpenCV y los modelos OCR se descargan durante el primer build y no se versionan.
+Paddle Lite, OpenCV, and the OCR models are downloaded during the first build and are not committed to the repository.
 
-## Uso
+## Usage
 
-1. Abre la app y define cuántos Pokémon se leerán.
-2. Si deseas avance automático, inicia Shizuku y autoriza la conexión desde la app.
-3. Pulsa **Iniciar lectura sobre Pokémon HOME** y concede superposición y captura de pantalla.
-4. Abre una ficha en Pokémon HOME. La lectura se repite hasta alcanzar el límite.
-5. Si Shizuku no está disponible, usa el botón flotante **Capturar** manualmente.
-6. Regresa a la app para revisar la colección y exportar el CSV.
-7. Abre **Checklist Shiny** para sincronizar la colección local, importar otro CSV, buscar pendientes o marcar excepciones manualmente.
+1. Use **Manual screenshot analysis** to choose and analyze existing screenshots.
+2. Use the language badge beside the app title to choose the UI and export language.
+3. Under **Automatic reading over Pokémon HOME**, set the number of Pokémon to scan.
+4. Start and authorize Shizuku if automatic swiping or Colosseum/XD inspection is required.
+5. Optionally enable the Colosseum/XD origin check.
+6. Tap **Start reading over Pokémon HOME**, then grant overlay and screen-capture permission.
+7. Open a Pokémon summary page in Pokémon HOME. Reading continues until the configured limit is reached.
+8. Without Shizuku, use the floating **Capture** button manually.
+9. Return to **Local collection** to review, export, or delete records.
 
-El catálogo inicial procede de `Origin mark list (Shiny).xlsx`. Durante la importación se corrigieron seis erratas evidentes de nombre y la fila de Cutiefly, que figuraba como #712 en lugar de #742; el Excel original no se modifica.
+The checklist catalog is generated from the verified `Origin mark list (Shiny).xlsx` source copy. It covers all 1,025 National Pokédex numbers, keeps continued form rows, and applies the documented shiny availability rules. The Dream Ball bonus is completed only when the record has a Dream Ball and no origin mark, matching Generation V Pokémon Dream World behavior.
 
-## Privacidad y permisos
+## Privacy and permissions
 
-El APK no solicita almacenamiento, contactos, ubicación, micrófono ni Accesibilidad. Android muestra dos permisos visibles porque son necesarios para trabajar sobre Pokémon HOME:
+The APK does not request storage, contacts, location, microphone, or Accessibility access. Android shows two explicit permissions required to operate over Pokémon HOME:
 
-- **Mostrar sobre otras apps**, para el control flotante.
-- **Capturar pantalla**, autorización temporal del sistema para analizar la ficha en memoria.
+- **Display over other apps**, for the floating controls.
+- **Screen capture**, a temporary Android authorization used to analyze the visible summary page in memory.
 
-Shizuku es opcional y su autorización puede revocarse desde su propia aplicación.
+Shizuku is optional and its authorization can be revoked from the Shizuku app.
 
-## Recursos gráficos
+## Graphics
 
-El arte original del icono se conserva en `branding/app_icon_source.png`. Para regenerar todos los tamaños legacy, redondos y adaptativos:
+The original app-icon artwork is stored in `branding/app_icon_source.png`. To regenerate legacy, round, and adaptive Android icon sizes:
 
 ```powershell
 python tools/generate_android_icons.py
 ```
 
-El script solo recorta transparencia, escala la imagen original y la coloca sobre el fondo de marca; no redibuja el arte.
+The script trims transparency, scales the source image, and places it on the brand background without redrawing the artwork.
 
-## Prototipo y herramientas
+## Desktop prototype and tools
 
-El directorio `src/` contiene el prototipo de escritorio y `tools/` utilidades de calibración. Para instalar sus dependencias sin versionar un entorno virtual:
+`src/` contains the desktop prototype and `tools/` contains calibration utilities. To install their dependencies without committing a virtual environment:
 
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\pip.exe install -r requirements.txt
 ```
 
-Las capturas de prueba, CSV personales, SDK local, entornos virtuales, dependencias Android descargadas y artefactos de build están excluidos por `.gitignore`.
+Test screenshots, personal CSV files, local SDKs, virtual environments, downloaded Android dependencies, and build artifacts are excluded through `.gitignore`.
 
-## Límites conocidos
+## Known limitations
 
-- El APK actual incluye únicamente `arm64-v8a`.
-- Las regiones visuales están calibradas para la ficha vertical de Pokémon HOME usada en las pruebas.
-- Algunas formas puramente visuales todavía necesitan más referencias; entre ellas están los Pikachu con gorra.
-- Cuando la confianza de una forma es insuficiente, se guarda para revisión en lugar de asumir la forma estándar.
+- The APK currently includes only `arm64-v8a`.
+- Visual regions are calibrated for the vertical Pokémon HOME summary layout used by the test devices.
+- Some purely visual forms still need additional references, including cap-wearing Pikachu.
+- A distant-land statement is not exclusive to Orre; National Ribbon evidence is more conclusive.
+- When form confidence is insufficient, the record is marked for review instead of assuming the standard form.
 
-## Licencia
+## License
 
-El código propio se distribuye bajo la licencia MIT incluida en `LICENSE`. Consulta `android/THIRD_PARTY_NOTICES.md` para las dependencias y datos de terceros.
+Original code is distributed under the MIT License in `LICENSE`. See `android/THIRD_PARTY_NOTICES.md` for third-party dependencies and data.

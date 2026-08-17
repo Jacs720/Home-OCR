@@ -45,6 +45,7 @@ public final class ScreenCaptureService extends Service {
     public static final String EXTRA_RESULT_DATA = "projection_result_data";
     public static final String EXTRA_LIMIT = "scan_limit";
     public static final String EXTRA_AUTO_SWIPE = "auto_swipe";
+    public static final String EXTRA_INSPECT_ORRE = "inspect_orre";
     private static final String ACTION_STOP = "com.jacar.pokemonhomeocr.STOP_CAPTURE";
     private static final String CHANNEL_ID = "pokemon_home_capture";
     private static final int NOTIFICATION_ID = 468;
@@ -71,10 +72,15 @@ public final class ScreenCaptureService extends Service {
     private int limit = 1;
     private int capturedCount;
     private boolean autoSwipeRequested;
+    private boolean inspectOrreRequested;
     private volatile boolean autoSwipeActive;
+    private volatile boolean inspectOrreActive;
     private volatile boolean analyzerReady;
     private volatile boolean captureRequested;
     private volatile boolean processing;
+    private volatile boolean detailCapture;
+    private volatile int captureSequence;
+    private PokemonRecord pendingRecord;
 
     public static boolean isRunning() {
         return running;
@@ -102,7 +108,9 @@ public final class ScreenCaptureService extends Service {
 
         limit = Math.max(1, intent.getIntExtra(EXTRA_LIMIT, 1));
         autoSwipeRequested = intent.getBooleanExtra(EXTRA_AUTO_SWIPE, false);
+        inspectOrreRequested = intent.getBooleanExtra(EXTRA_INSPECT_ORRE, false);
         autoSwipeActive = autoSwipeRequested && swipeController.isReady();
+        inspectOrreActive = inspectOrreRequested && swipeController.isReady();
         startCaptureForeground();
         if (overlayView == null) createOverlay();
         if (mediaProjection == null) startProjection(intent);
@@ -112,18 +120,23 @@ public final class ScreenCaptureService extends Service {
                 analyzer.initialize();
                 analyzerReady = true;
                 mainHandler.post(() -> {
-                    if (autoSwipeActive) {
-                        setStatus("Automático listo · " + capturedCount + "/" + limit);
-                    } else if (autoSwipeRequested) {
-                        setStatus("Shizuku no disponible · captura manual");
+                    if (autoSwipeActive && inspectOrreActive) {
+                        setStatus(getString(R.string.overlay_automatic_orre_ready,
+                                capturedCount, limit));
+                    } else if (autoSwipeActive) {
+                        setStatus(getString(R.string.overlay_automatic_ready,
+                                capturedCount, limit));
+                    } else if (autoSwipeRequested || inspectOrreRequested) {
+                        setStatus(getString(R.string.overlay_shizuku_unavailable));
                     } else {
-                        setStatus("Listo · " + capturedCount + "/" + limit);
+                        setStatus(getString(R.string.overlay_ready, capturedCount, limit));
                     }
                     updateButtons();
                     if (autoSwipeActive) mainHandler.postDelayed(this::requestCapture, 900);
                 });
             } catch (RuntimeException exception) {
-                mainHandler.post(() -> setStatus("Error OCR: " + exception.getMessage()));
+                mainHandler.post(() -> setStatus(getString(
+                        R.string.overlay_ocr_error, exception.getMessage())));
             }
         });
         return START_NOT_STICKY;
@@ -170,7 +183,7 @@ public final class ScreenCaptureService extends Service {
         int resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED);
         Intent resultData = projectionResultData(intent);
         if (resultCode != Activity.RESULT_OK || resultData == null) {
-            setStatus("Permiso de pantalla cancelado");
+            setStatus(getString(R.string.overlay_permission_cancelled));
             stopSelf();
             return;
         }
@@ -308,20 +321,42 @@ public final class ScreenCaptureService extends Service {
     }
 
     private void requestCapture() {
+        requestCapture(false);
+    }
+
+    private void requestCapture(boolean details) {
         if (!analyzerReady || processing || captureRequested || imageReader == null) return;
         if (capturedCount >= limit) return;
         processing = true;
-        setStatus("Capturando · " + capturedCount + "/" + limit);
+        detailCapture = details;
+        int requestSequence = ++captureSequence;
+        setStatus(details ? getString(R.string.overlay_reading_orre)
+                : getString(R.string.overlay_capturing, capturedCount, limit));
         updateButtons();
         overlayView.setVisibility(View.INVISIBLE);
-        mainHandler.postDelayed(() -> captureRequested = true, 220);
         mainHandler.postDelayed(() -> {
-            if (!captureRequested) return;
+            if (requestSequence == captureSequence) captureRequested = true;
+        }, 220);
+        mainHandler.postDelayed(() -> {
+            if (requestSequence != captureSequence || !captureRequested) return;
             captureRequested = false;
-            processing = false;
             overlayView.setVisibility(View.VISIBLE);
-            setStatus("No llegó una imagen de pantalla");
-            updateButtons();
+            if (detailCapture && pendingRecord != null) {
+                setStatus(getString(R.string.overlay_detail_failed));
+                PokemonRecord record = pendingRecord;
+                pendingRecord = null;
+                analyzerWorker.execute(() -> {
+                    boolean restored = swipeController.scrollUp(screenWidth, screenHeight);
+                    if (!restored) autoSwipeActive = false;
+                    mainHandler.postDelayed(
+                            () -> analyzerWorker.execute(() -> finalizeRecord(record)),
+                            restored ? 450 : 0);
+                });
+            } else {
+                processing = false;
+                setStatus(getString(R.string.overlay_no_frame));
+                updateButtons();
+            }
         }, 2200);
     }
 
@@ -331,12 +366,16 @@ public final class ScreenCaptureService extends Service {
         try {
             if (!captureRequested) return;
             captureRequested = false;
+            boolean details = detailCapture;
             Bitmap bitmap = imageToBitmap(image);
             mainHandler.post(() -> {
                 if (overlayView != null) overlayView.setVisibility(View.VISIBLE);
-                setStatus("Analizando…");
+                setStatus(getString(R.string.overlay_analyzing));
             });
-            analyzerWorker.execute(() -> analyzeCapturedFrame(bitmap));
+            analyzerWorker.execute(() -> {
+                if (details) analyzeOrreDetailFrame(bitmap);
+                else analyzeCapturedFrame(bitmap);
+            });
         } finally {
             image.close();
         }
@@ -360,20 +399,84 @@ public final class ScreenCaptureService extends Service {
         try {
             PokemonRecord record = analyzer.analyze(
                     bitmap, "screen://" + System.currentTimeMillis());
+            if (inspectOrreActive && analyzer.shouldInspectOrre(record)) {
+                pendingRecord = record;
+                mainHandler.post(() -> setStatus(getString(
+                        R.string.overlay_scrolling_orre)));
+                boolean scrolled = swipeController.scrollDown(screenWidth, screenHeight);
+                if (scrolled) {
+                    mainHandler.post(() -> {
+                        processing = false;
+                        mainHandler.postDelayed(() -> requestCapture(true), 950);
+                    });
+                } else {
+                    inspectOrreActive = false;
+                    pendingRecord = null;
+                    finalizeRecord(record);
+                }
+            } else {
+                finalizeRecord(record);
+            }
+        } catch (Exception exception) {
+            mainHandler.post(() -> {
+                processing = false;
+                setStatus(getString(R.string.overlay_error, exception.getMessage()));
+                updateButtons();
+            });
+        } finally {
+            bitmap.recycle();
+        }
+    }
+
+    private void analyzeOrreDetailFrame(Bitmap bitmap) {
+        PokemonRecord original = pendingRecord;
+        pendingRecord = null;
+        try {
+            PokemonRecord record = original == null
+                    ? null : analyzer.analyzeOrreDetails(bitmap, original);
+            boolean restored = swipeController.scrollUp(screenWidth, screenHeight);
+            if (!restored) autoSwipeActive = false;
+            if (record == null) {
+                throw new IllegalStateException(getString(R.string.overlay_no_pending_record));
+            }
+            mainHandler.postDelayed(
+                    () -> analyzerWorker.execute(() -> finalizeRecord(record)),
+                    restored ? 450 : 0);
+        } catch (Exception exception) {
+            if (original != null) {
+                swipeController.scrollUp(screenWidth, screenHeight);
+                finalizeRecord(original);
+            } else {
+                mainHandler.post(() -> {
+                    processing = false;
+                    setStatus(getString(R.string.overlay_error, exception.getMessage()));
+                    updateButtons();
+                });
+            }
+        } finally {
+            bitmap.recycle();
+        }
+    }
+
+    private void finalizeRecord(PokemonRecord record) {
+        try {
             boolean inserted = collectionStore.append(record);
             if (inserted) capturedCount++;
-            String status = inserted ? record.summary() : "Captura repetida";
+            String status = inserted ? record.summary() : getString(R.string.overlay_duplicate);
             boolean shouldContinue = inserted && autoSwipeActive && capturedCount < limit;
-            boolean swiped = !shouldContinue || swipeController.swipeRight(screenWidth, screenHeight);
+            boolean swiped = !shouldContinue
+                    || swipeController.swipeRight(screenWidth, screenHeight);
             if (shouldContinue && !swiped) autoSwipeActive = false;
             boolean scheduleNext = shouldContinue && swiped;
             mainHandler.post(() -> {
                 processing = false;
+                detailCapture = false;
                 if (shouldContinue && !swiped) {
-                    setStatus(capturedCount + "/" + limit
-                            + " · falló Shizuku; continúa con CAPTURAR");
+                    setStatus(getString(R.string.overlay_shizuku_failed,
+                            capturedCount, limit));
                 } else {
-                    setStatus(capturedCount + "/" + limit + " · " + status);
+                    setStatus(getString(R.string.overlay_result,
+                            capturedCount, limit, status));
                 }
                 updateButtons();
                 if (scheduleNext) mainHandler.postDelayed(this::requestCapture, 1100);
@@ -381,11 +484,10 @@ public final class ScreenCaptureService extends Service {
         } catch (Exception exception) {
             mainHandler.post(() -> {
                 processing = false;
-                setStatus("Error: " + exception.getMessage());
+                detailCapture = false;
+                setStatus(getString(R.string.overlay_error, exception.getMessage()));
                 updateButtons();
             });
-        } finally {
-            bitmap.recycle();
         }
     }
 
@@ -409,6 +511,7 @@ public final class ScreenCaptureService extends Service {
         running = false;
         analyzerReady = false;
         captureRequested = false;
+        captureSequence++;
         if (overlayView != null && windowManager != null) {
             windowManager.removeView(overlayView);
             overlayView = null;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/brand_teal</item>
         <item name="colorPrimaryDark">@color/brand_navy</item>
         <item name="colorAccent">@color/brand_yellow</item>
@@ -49,5 +49,10 @@
     <style name="GhostButton" parent="BaseButton">
         <item name="android:background">@drawable/bg_button_ghost</item>
         <item name="android:textColor">@color/button_secondary_text</item>
+    </style>
+
+    <style name="DangerButton" parent="BaseButton">
+        <item name="android:background">@drawable/bg_button_danger</item>
+        <item name="android:textColor">@color/button_danger_text</item>
     </style>
 </resources>

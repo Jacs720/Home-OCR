@@ -16,6 +16,7 @@ public final class PokemonAnalyzer implements AutoCloseable {
     private final PokemonStatsDetector statsDetector = new PokemonStatsDetector();
     private final VisualFormDetector visualFormDetector = new VisualFormDetector();
     private final UnownFormDetector unownFormDetector;
+    private final OrreOriginDetector orreOriginDetector = new OrreOriginDetector();
 
     public PokemonAnalyzer(Context context) {
         this.context = context.getApplicationContext();
@@ -78,6 +79,16 @@ public final class PokemonAnalyzer implements AutoCloseable {
             if (statsForm != null) form = statsForm;
         }
         return record.withForm(form);
+    }
+
+    public boolean shouldInspectOrre(PokemonRecord record) {
+        return orreOriginDetector.requiresInspection(record);
+    }
+
+    public synchronized PokemonRecord analyzeOrreDetails(Bitmap bitmap, PokemonRecord record) {
+        if (!isReady()) throw new IllegalStateException("PaddleOCR no está inicializado.");
+        List<OcrResultModel> results = ocrEngine.recognize(bitmap);
+        return record.withOrreEvidence(orreOriginDetector.detect(results, record));
     }
 
     private List<OcrResultModel> recognizeRegion(

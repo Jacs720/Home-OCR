@@ -4,7 +4,8 @@ import java.util.Locale;
 
 public final class PokemonRecord {
     public static final String CSV_HEADER =
-            "No.,Especie,Forma,Marca de origen,Shiny,OT,IDNo.,Bola,Idioma,Confianza,Archivo";
+            "No.,Especie,Forma,Marca de origen,Shiny,OT,IDNo.,Bola,Idioma,Confianza,Archivo,"
+                    + "Origen especial,Cinta Nacional,Lugar lejano";
 
     public final int nationalNumber;
     public final String species;
@@ -17,6 +18,9 @@ public final class PokemonRecord {
     public final String language;
     public final float confidence;
     public final String source;
+    public final String specialOrigin;
+    public final boolean nationalRibbon;
+    public final boolean distantLand;
 
     public PokemonRecord(
             int nationalNumber,
@@ -31,6 +35,26 @@ public final class PokemonRecord {
             float confidence,
             String source
     ) {
+        this(nationalNumber, species, form, originMark, shiny, ot, trainerId, ball,
+                language, confidence, source, "", false, false);
+    }
+
+    public PokemonRecord(
+            int nationalNumber,
+            String species,
+            String form,
+            String originMark,
+            boolean shiny,
+            String ot,
+            String trainerId,
+            String ball,
+            String language,
+            float confidence,
+            String source,
+            String specialOrigin,
+            boolean nationalRibbon,
+            boolean distantLand
+    ) {
         this.nationalNumber = nationalNumber;
         this.species = species;
         this.form = form;
@@ -42,6 +66,9 @@ public final class PokemonRecord {
         this.language = language;
         this.confidence = confidence;
         this.source = source;
+        this.specialOrigin = specialOrigin == null ? "" : specialOrigin;
+        this.nationalRibbon = nationalRibbon;
+        this.distantLand = distantLand;
     }
 
     public String toCsvRow() {
@@ -56,7 +83,10 @@ public final class PokemonRecord {
                 csv(ball),
                 csv(language),
                 csv(String.format(Locale.ROOT, "%.3f", confidence)),
-                csv(source));
+                csv(source),
+                csv(specialOrigin),
+                csv(nationalRibbon ? "Sí" : "No"),
+                csv(distantLand ? "Sí" : "No"));
     }
 
     public String summary() {
@@ -68,7 +98,8 @@ public final class PokemonRecord {
                 ball,
                 originMark,
                 language,
-                shiny ? " · Shiny" : "");
+                shiny ? " · Shiny" : "")
+                + (specialOrigin.isEmpty() ? "" : " · " + specialOrigin);
     }
 
     public PokemonRecord withForm(String detectedForm) {
@@ -83,7 +114,29 @@ public final class PokemonRecord {
                 ball,
                 language,
                 confidence,
-                source);
+                source,
+                specialOrigin,
+                nationalRibbon,
+                distantLand);
+    }
+
+    public PokemonRecord withOrreEvidence(OrreOriginDetector.Result evidence) {
+        if (evidence == null || !evidence.matched()) return this;
+        return new PokemonRecord(
+                nationalNumber,
+                species,
+                form,
+                originMark,
+                shiny,
+                ot,
+                trainerId,
+                ball,
+                language,
+                confidence,
+                source,
+                evidence.specialOrigin,
+                evidence.nationalRibbon,
+                evidence.distantLand);
     }
 
     private static String csv(String value) {

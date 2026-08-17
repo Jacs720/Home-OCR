@@ -38,13 +38,38 @@ public final class ChecklistMatcherTest {
     @Test
     public void marksOriginAndDreamBallTargetsFromOneRecord() {
         List<ChecklistEntry> entries = Arrays.asList(
-                entry("origin", 1, "Bulbasaur", "Estándar", "Kalos", ChecklistEntry.TYPE_ORIGIN_MARK),
+                entry("origin", 1, "Bulbasaur", "Estándar", "Sin marca (Gen 3-5)", ChecklistEntry.TYPE_ORIGIN_MARK),
                 entry("dream", 1, "Bulbasaur", "Estándar", "Dream Ball (V)", ChecklistEntry.TYPE_DREAM_BALL));
         ChecklistMatcher matcher = new ChecklistMatcher(entries);
 
-        ChecklistMatcher.MatchResult result = matcher.match(1, "Estándar", "Pentagon Mark", "Dream Ball");
+        ChecklistMatcher.MatchResult result = matcher.match(1, "Estándar", "Sin marca", "Dream Ball");
 
         assertEquals(2, result.entries.size());
+    }
+
+    @Test
+    public void dreamBallRequiresNoOriginMark() {
+        List<ChecklistEntry> entries = Arrays.asList(
+                entry("dream", 1, "Bulbasaur", "Estándar", "Dream Ball (V)", ChecklistEntry.TYPE_DREAM_BALL));
+        ChecklistMatcher matcher = new ChecklistMatcher(entries);
+
+        ChecklistMatcher.MatchResult result = matcher.match(
+                1, "Estándar", "Pentagon Mark", "Dream Ball");
+
+        assertEquals(0, result.entries.size());
+    }
+
+    @Test
+    public void matchesLivingDexRegardlessOfShinyMetadata() {
+        List<ChecklistEntry> entries = Arrays.asList(
+                entry("standard", 19, "Rattata", "Estándar", "Living Dex", ChecklistEntry.TYPE_LIVING_DEX),
+                entry("alola", 19, "Rattata alola", "alola", "Living Dex", ChecklistEntry.TYPE_LIVING_DEX));
+        ChecklistMatcher matcher = new ChecklistMatcher(entries);
+
+        ChecklistMatcher.MatchResult result = matcher.matchLiving(19, "Alola");
+
+        assertEquals(1, result.entries.size());
+        assertEquals("alola", result.entries.get(0).id);
     }
 
     @Test

@@ -37,7 +37,7 @@ public final class ShizukuSwipeController implements AutoCloseable {
                 new ComponentName(context, SwipeUserService.class))
                 .processNameSuffix("pokemon_swipe")
                 .tag("pokemon_home_swipe")
-                .version(1)
+                .version(2)
                 .daemon(false);
     }
 
@@ -55,6 +55,26 @@ public final class ShizukuSwipeController implements AutoCloseable {
         if (!isReady() || !bindIfNecessary()) return false;
         try {
             return remoteService.swipe(screenWidth, screenHeight);
+        } catch (RemoteException | RuntimeException exception) {
+            remoteService = null;
+            return false;
+        }
+    }
+
+    public boolean scrollDown(int screenWidth, int screenHeight) {
+        if (!isReady() || !bindIfNecessary()) return false;
+        try {
+            return remoteService.scrollDown(screenWidth, screenHeight);
+        } catch (RemoteException | RuntimeException exception) {
+            remoteService = null;
+            return false;
+        }
+    }
+
+    public boolean scrollUp(int screenWidth, int screenHeight) {
+        if (!isReady() || !bindIfNecessary()) return false;
+        try {
+            return remoteService.scrollUp(screenWidth, screenHeight);
         } catch (RemoteException | RuntimeException exception) {
             remoteService = null;
             return false;

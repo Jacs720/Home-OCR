@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { FileBlob, SpreadsheetFile } from "@oai/artifact-tool";
 
-const sourcePath = path.resolve("previews/Sheet1.json");
+const sourcePath = "C:/Users/jacar/Documents/Pokémon-home-OCR/Home-OCR/outputs/019ff2dc-e55d-7882-82fa-7d9527bf0fd4/Origin mark list (Shiny) - verificado.xlsx";
 const speciesPath = path.resolve("../android/app/src/main/assets/pokemon_species_names.csv");
 const catalogPath = path.resolve("../android/app/src/main/assets/checklist_catalog.csv");
 const reportPath = path.resolve("catalog_report.json");
@@ -49,7 +50,8 @@ function nationalNumber(value) {
   return match ? Number.parseInt(match[0], 10) : 0;
 }
 
-const rows = JSON.parse(await fs.readFile(sourcePath, "utf8"));
+const workbook = await SpreadsheetFile.importXlsx(await FileBlob.load(sourcePath));
+const rows = workbook.worksheets.getItem("Sheet1").getRange("A1:V1287").values;
 const speciesLines = (await fs.readFile(speciesPath, "utf8")).split(/\r?\n/);
 const englishSpecies = new Map();
 for (const line of speciesLines.slice(1)) {
@@ -74,24 +76,17 @@ const targets = [
   { column: 15, label: "Colo/XD", type: "COLO_XD" },
 ];
 
-const worksheetCorrections = new Map([
-  [7, { pokemon: "Venusaur" }],
-  [613, { pokemon: "Simipour" }],
-  [916, { number: 742, pokemon: "Cutiefly" }],
-  [1129, { pokemon: "Arctozolt" }],
-  [1165, { pokemon: "Quaxly" }],
-  [1280, { pokemon: "Archaludon" }],
-]);
-
 const catalog = [];
 const rowsByNumber = new Map();
 const unmatchedNames = [];
+let currentNumber = 0;
 for (let index = 4; index < rows.length; index += 1) {
   const row = rows[index];
   const sourceRow = index + 1;
-  const correction = worksheetCorrections.get(sourceRow);
-  const number = correction?.number ?? nationalNumber(row[0]);
-  const pokemon = correction?.pokemon ?? String(row[2] ?? "").trim();
+  const explicitNumber = nationalNumber(row[0]);
+  if (explicitNumber) currentNumber = explicitNumber;
+  const number = currentNumber;
+  const pokemon = String(row[2] ?? "").trim();
   if (!number || !pokemon) continue;
   const baseSpecies = englishSpecies.get(number) ?? pokemon;
   const normalizedPokemon = normalize(pokemon);
@@ -110,6 +105,17 @@ for (let index = 4; index < rows.length; index += 1) {
   const rowInfo = { row: sourceRow, number, pokemon, form };
   if (!rowsByNumber.has(number)) rowsByNumber.set(number, []);
   rowsByNumber.get(number).push(rowInfo);
+
+  catalog.push({
+    id: `${number}:${sourceRow}:LIVING_DEX`,
+    nationalNumber: number,
+    pokemon,
+    form,
+    originMark: "Living Dex",
+    targetType: "LIVING_DEX",
+    ownedInitial: row.slice(3, 16).some((state) => state === true),
+    sourceRow,
+  });
 
   for (const target of targets) {
     const state = row[target.column];
@@ -147,8 +153,9 @@ const missingNumbers = [];
 for (let number = 1; number <= 1025; number += 1) {
   if (!rowsByNumber.has(number)) missingNumbers.push(number);
 }
-const countByTarget = Object.fromEntries(targets.map((target) => [target.label, 0]));
-const ownedByTarget = Object.fromEntries(targets.map((target) => [target.label, 0]));
+const reportLabels = ["Living Dex", ...targets.map((target) => target.label)];
+const countByTarget = Object.fromEntries(reportLabels.map((label) => [label, 0]));
+const ownedByTarget = Object.fromEntries(reportLabels.map((label) => [label, 0]));
 for (const entry of catalog) {
   countByTarget[entry.originMark] += 1;
   if (entry.ownedInitial) ownedByTarget[entry.originMark] += 1;
@@ -167,7 +174,7 @@ const report = {
   countByTarget,
   ownedByTarget,
   unmatchedNames,
-  worksheetCorrections: Object.fromEntries(worksheetCorrections),
+  worksheetCorrections: {},
 };
 await fs.writeFile(reportPath, JSON.stringify(report, null, 2), "utf8");
 console.log(JSON.stringify(report, null, 2));
